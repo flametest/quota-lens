@@ -224,7 +224,7 @@ export default function Popup() {
       )}
 
       {/* Data display */}
-      {data && !loading && (
+      {data && (
         <div className="flex flex-col gap-4 animate-slide-up">
           {/* Token quota (5h) */}
           <div className="card">
