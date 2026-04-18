@@ -85,4 +85,6 @@ export const zh: Record<string, string> = {
   "scheduler.notifPageHint": "可在\"通知\"页面修改时间和开关",
   "scheduler.refreshInterval": "自动刷新间隔",
   "scheduler.minutes": "分钟",
+  "scheduler.trayPercent": "显示托盘百分比",
+  "scheduler.trayPercentDesc": "在菜单栏图标旁显示 5h 额度百分比",
 };

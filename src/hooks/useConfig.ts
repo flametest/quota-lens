@@ -17,6 +17,7 @@ export interface NotificationConfig {
   autoHiEnabled: boolean;
   autoHiHours: number[];
   refreshInterval: number;
+  showTrayPercent: boolean;
 }
 
 export interface AppConfig {
@@ -47,6 +48,7 @@ const defaultConfig: AppConfig = {
     autoHiEnabled: true,
     autoHiHours: [7, 12, 17, 22],
     refreshInterval: 5,
+    showTrayPercent: true,
   },
 };
 

@@ -139,6 +139,17 @@ fn quit_app(app: tauri::AppHandle) {
 }
 
 #[tauri::command]
+fn update_tray_title(app: tauri::AppHandle, title: String) {
+    if let Some(tray) = app.tray_by_id("main") {
+        if title.is_empty() {
+            let _ = tray.set_title(Some(""));
+        } else {
+            let _ = tray.set_title(Some(&title));
+        }
+    }
+}
+
+#[tauri::command]
 async fn send_hi_message(base_url: String, auth_token: String) -> Result<String, String> {
     let provider = GlmProvider::new(&base_url, &auth_token);
     provider.send_hi().await?;
@@ -277,7 +288,8 @@ pub fn run() {
             debug_raw_usage,
             quit_app,
             send_hi_message,
-            update_auto_hi_config
+            update_auto_hi_config,
+            update_tray_title
         ])
         .setup(|app| {
             // Hide window when focus is lost (click outside)

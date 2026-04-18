@@ -72,7 +72,7 @@ export default function SettingsPage({ onClose, theme, setTheme, config, updateN
         {activeTab === "provider" && (
           <ProviderConfigPanel config={config} updateProvider={updateProvider} />
         )}
-        {activeTab === "theme" && <ThemeConfigPanel theme={theme} setTheme={setTheme} />}
+        {activeTab === "theme" && <ThemeConfigPanel theme={theme} setTheme={setTheme} config={config} updateNotifications={updateNotifications} />}
         {activeTab === "notification" && (
           <NotificationConfigPanel
             config={config.notifications}

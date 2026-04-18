@@ -85,4 +85,6 @@ export const en: Record<string, string> = {
   "scheduler.notifPageHint": "Time and toggle can be changed in the Notifications tab",
   "scheduler.refreshInterval": "Auto-Refresh Interval",
   "scheduler.minutes": "min",
+  "scheduler.trayPercent": "Show Tray Percentage",
+  "scheduler.trayPercentDesc": "Display 5h quota percentage next to menu bar icon",
 };

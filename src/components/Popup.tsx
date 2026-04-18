@@ -60,6 +60,14 @@ export default function Popup() {
     });
   }, [config.notifications.autoHiEnabled, config.notifications.autoHiHours]);
 
+  // Update tray title when setting changes
+  useEffect(() => {
+    const title = config.notifications.showTrayPercent
+      ? `${(data?.quota?.five_hour_percentage ?? 0).toFixed(0)}%`
+      : "";
+    (window as any).__TAURI__.core.invoke("update_tray_title", { title });
+  }, [config.notifications.showTrayPercent, data]);
+
   const loadUsage = useCallback(async () => {
     const provider = config.providers.find((p) => p.id === config.activeProviderId);
     if (!provider?.auth_token) {
@@ -105,6 +113,11 @@ export default function Popup() {
       };
       setData(parsed);
       setLastRefresh(new Date());
+
+      // Update tray title with percentage
+      const pct = result.quota?.five_hour_percentage ?? 0;
+      const title = config.notifications.showTrayPercent ? `${pct.toFixed(0)}%` : "";
+      (window as any).__TAURI__.core.invoke("update_tray_title", { title });
 
       // Debug: log quota to verify reset times
       console.log("[Quota Lens] quota:", JSON.stringify(result.quota, null, 2));
