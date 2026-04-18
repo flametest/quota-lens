@@ -7,6 +7,9 @@ function AppContent() {
   const { resolved } = useTheme();
   const { t } = useI18n();
 
+  const invoke = (cmd: string, args?: Record<string, unknown>) =>
+    (window as any).__TAURI__.core.invoke(cmd, args);
+
   const getActiveProvider = () => {
     const stored = localStorage.getItem("quota-lens-config");
     if (!stored) return null;
@@ -22,7 +25,7 @@ function AppContent() {
       const config = JSON.parse(stored);
       const { autoHiEnabled, autoHiHours } = config.notifications || {};
       if (typeof autoHiEnabled === "boolean" && Array.isArray(autoHiHours)) {
-        (window as any).__TAURI__?.core?.invoke?.("update_auto_hi_config", {
+        invoke("update_auto_hi_config", {
           enabled: autoHiEnabled,
           hours: autoHiHours,
         });
@@ -40,7 +43,6 @@ function AppContent() {
         const provider = getActiveProvider();
         if (!provider?.auth_token) return;
 
-        const invoke = (window as any).__TAURI__.core.invoke;
         for (let i = 0; i < 3; i++) {
           try {
             await invoke("send_hi_message", {
@@ -78,14 +80,11 @@ function AppContent() {
         const [h, m] = (config.notifications.dailySummaryTime || "22:00").split(":").map(Number);
         if (now.getHours() === h && now.getMinutes() === m) {
           try {
-            const msg = await (window as any).__TAURI__.core.invoke("send_daily_summary", {
+            const msg = await invoke("send_daily_summary", {
               baseUrl: provider.base_url,
               authToken: provider.auth_token,
             });
-            (window as any).__TAURI__?.notification?.sendNotification?.({
-              title: t("app.dailySummaryTitle"),
-              body: msg,
-            });
+            await invoke("notify", { title: t("app.dailySummaryTitle"), body: msg });
           } catch {
             // silently ignore
           }

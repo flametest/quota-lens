@@ -7,6 +7,7 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder},
     Emitter, Manager, Position, Rect, RunEvent, Size,
 };
+use tauri_plugin_notification::NotificationExt;
 
 struct AutoHiState {
     enabled: bool,
@@ -136,6 +137,33 @@ async fn send_daily_summary(
 #[tauri::command]
 fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
+}
+
+#[tauri::command]
+fn test_notification(app: tauri::AppHandle) -> Result<String, String> {
+    app.notification()
+        .builder()
+        .title("Quota Lens")
+        .body("Rust 端通知测试")
+        .show()
+        .map_err(|e| format!("Notification error: {}", e))?;
+    Ok("sent".to_string())
+}
+
+#[tauri::command]
+fn notify(title: String, body: String) -> Result<String, String> {
+    let escaped_title = title.replace('\\', "\\\\").replace('"', "\\\"");
+    let escaped_body = body.replace('\\', "\\\\").replace('"', "\\\"");
+    let script = format!(
+        "display notification \"{}\" with title \"{}\"",
+        escaped_body, escaped_title
+    );
+    std::process::Command::new("osascript")
+        .arg("-e")
+        .arg(&script)
+        .output()
+        .map_err(|e| format!("osascript error: {}", e))?;
+    Ok("sent".to_string())
 }
 
 #[tauri::command]
@@ -289,7 +317,9 @@ pub fn run() {
             quit_app,
             send_hi_message,
             update_auto_hi_config,
-            update_tray_title
+            update_tray_title,
+            test_notification,
+            notify
         ])
         .setup(|app| {
             // Hide window when focus is lost (click outside)

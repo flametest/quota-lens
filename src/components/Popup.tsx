@@ -7,6 +7,9 @@ import { useTheme } from "../hooks/useTheme";
 import { useConfig } from "../hooks/useConfig";
 import { useI18n } from "../hooks/useI18n";
 
+const invoke = (cmd: string, args?: Record<string, unknown>) =>
+  (window as any).__TAURI__.core.invoke(cmd, args);
+
 interface UsageData {
   week_series: { label: string; value: number }[];
   today: { total_tokens: number };
@@ -128,15 +131,9 @@ export default function Popup() {
         const crit = config.notifications.criticalThreshold;
         const warn = config.notifications.warnThreshold;
         if (pct >= crit) {
-          await (window as any).__TAURI__.notification?.sendNotification?.({
-            title: "Quota Lens",
-            body: t("popup.tokenCritical", { pct: pct.toFixed(0) }),
-          });
+          invoke("notify", { title: "Quota Lens", body: t("popup.tokenCritical", { pct: pct.toFixed(0) }) });
         } else if (pct >= warn) {
-          await (window as any).__TAURI__.notification?.sendNotification?.({
-            title: "Quota Lens",
-            body: t("popup.tokenWarning", { pct: pct.toFixed(0) }),
-          });
+          invoke("notify", { title: "Quota Lens", body: t("popup.tokenWarning", { pct: pct.toFixed(0) }) });
         }
       }
     } catch (e: any) {
