@@ -143,12 +143,34 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
 
       {/* Auto-refresh interval */}
       <div className="card">
-        <span className="text-xs font-medium block mb-1" style={{ color: "var(--text-primary)" }}>
+        <span className="text-xs font-medium block mb-2" style={{ color: "var(--text-primary)" }}>
           {t("scheduler.refreshInterval")}
         </span>
-        <span className="text-[10px]" style={{ color: "var(--text-secondary)" }}>
-          {t("scheduler.refreshIntervalDesc")}
-        </span>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => {
+              const v = Math.max(1, config.notifications.refreshInterval - 1);
+              updateNotifications({ refreshInterval: v });
+            }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold"
+            style={{ background: "var(--bg-tertiary)", color: "var(--text-primary)" }}
+          >
+            −
+          </button>
+          <span className="text-sm font-semibold" style={{ color: "var(--accent)" }}>
+            {config.notifications.refreshInterval} {t("scheduler.minutes")}
+          </span>
+          <button
+            onClick={() => {
+              const v = Math.min(60, config.notifications.refreshInterval + 1);
+              updateNotifications({ refreshInterval: v });
+            }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold"
+            style={{ background: "var(--bg-tertiary)", color: "var(--text-primary)" }}
+          >
+            +
+          </button>
+        </div>
       </div>
     </div>
   );

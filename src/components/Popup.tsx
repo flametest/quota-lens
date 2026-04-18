@@ -44,6 +44,7 @@ export default function Popup() {
   const [data, setData] = useState<UsageData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const { setTheme, theme } = useTheme();
   const { activeProvider, config, updateNotifications, updateProvider } = useConfig();
@@ -103,6 +104,7 @@ export default function Popup() {
         quota: result.quota,
       };
       setData(parsed);
+      setLastRefresh(new Date());
 
       // Debug: log quota to verify reset times
       console.log("[Quota Lens] quota:", JSON.stringify(result.quota, null, 2));
@@ -133,7 +135,8 @@ export default function Popup() {
 
   useEffect(() => {
     loadUsage();
-    const timer = setInterval(loadUsage, 5 * 60 * 1000);
+    const ms = (config.notifications.refreshInterval || 5) * 60 * 1000;
+    const timer = setInterval(loadUsage, ms);
     return () => clearInterval(timer);
   }, [loadUsage]);
 
@@ -174,6 +177,11 @@ export default function Popup() {
           </span>
         </div>
         <div className="flex items-center gap-1">
+          {lastRefresh && (
+            <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
+              {lastRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
+            </span>
+          )}
           <button
             onClick={loadUsage}
             disabled={loading}

@@ -84,5 +84,5 @@ export const en: Record<string, string> = {
   "scheduler.everyday": "Every day {time}",
   "scheduler.notifPageHint": "Time and toggle can be changed in the Notifications tab",
   "scheduler.refreshInterval": "Auto-Refresh Interval",
-  "scheduler.refreshIntervalDesc": "Current: Refreshes usage data every 5 minutes",
+  "scheduler.minutes": "min",
 };

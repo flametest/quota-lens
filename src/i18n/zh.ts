@@ -84,5 +84,5 @@ export const zh: Record<string, string> = {
   "scheduler.everyday": "每天 {time}",
   "scheduler.notifPageHint": "可在\"通知\"页面修改时间和开关",
   "scheduler.refreshInterval": "自动刷新间隔",
-  "scheduler.refreshIntervalDesc": "当前：每 5 分钟自动刷新一次用量数据",
+  "scheduler.minutes": "分钟",
 };

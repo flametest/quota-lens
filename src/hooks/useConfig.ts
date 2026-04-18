@@ -16,6 +16,7 @@ export interface NotificationConfig {
   dailySummaryTime: string;
   autoHiEnabled: boolean;
   autoHiHours: number[];
+  refreshInterval: number;
 }
 
 export interface AppConfig {
@@ -45,6 +46,7 @@ const defaultConfig: AppConfig = {
     dailySummaryTime: "22:00",
     autoHiEnabled: true,
     autoHiHours: [7, 12, 17, 22],
+    refreshInterval: 5,
   },
 };
 
