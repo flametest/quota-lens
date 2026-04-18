@@ -89,12 +89,37 @@ export default function NotificationConfigPanel({ config, updateNotifications }:
           <span className="text-xs block mb-2" style={{ color: "var(--text-primary)" }}>
             {t("notification.summaryTime")}
           </span>
-          <input
-            type="time"
-            value={config.dailySummaryTime}
-            onChange={(e) => updateNotifications({ dailySummaryTime: e.target.value })}
-            className="input text-xs"
-          />
+          <div className="flex items-center gap-1">
+            <select
+              value={parseInt(config.dailySummaryTime?.split(":")[0]) ?? 22}
+              onChange={(e) => {
+                const h = e.target.value.padStart(2, "0");
+                const m = config.dailySummaryTime?.split(":")[1] || "00";
+                updateNotifications({ dailySummaryTime: `${h}:${m}` });
+              }}
+              className="input text-xs"
+              style={{ width: 56, padding: "4px 6px" }}
+            >
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={i}>{String(i).padStart(2, "0")}</option>
+              ))}
+            </select>
+            <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>:</span>
+            <select
+              value={parseInt(config.dailySummaryTime?.split(":")[1]) ?? 0}
+              onChange={(e) => {
+                const m = e.target.value.padStart(2, "0");
+                const h = config.dailySummaryTime?.split(":")[0] || "22";
+                updateNotifications({ dailySummaryTime: `${h}:${m}` });
+              }}
+              className="input text-xs"
+              style={{ width: 56, padding: "4px 6px" }}
+            >
+              {Array.from({ length: 60 }, (_, i) => (
+                <option key={i} value={i}>{String(i).padStart(2, "0")}</option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
     </div>
