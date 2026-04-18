@@ -27,11 +27,6 @@
         "shadow": false
       }
     ],
-    "trayIcon": {
-      "iconPath": "icons/icon.png",
-      "iconAsTemplate": true,
-      "tooltip": "Quota Lens"
-    },
     "security": {
       "csp": null
     }

@@ -28,10 +28,13 @@ export default function SettingsPage({ onClose, theme, setTheme, config, updateN
   const [activeTab, setActiveTab] = useState<Tab>("provider");
 
   return (
-    <div className="w-[320px] h-[480px] flex flex-col animate-fade-in">
+    <div
+      className="w-[320px] h-[480px] flex flex-col animate-fade-in glass rounded-2xl border"
+      style={{ borderColor: "var(--border-color)" }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <button onClick={onClose} className="text-xs font-medium cursor-pointer" style={{ color: "var(--accent)" }}>
+        <button type="button" onClick={onClose} className="text-xs font-medium cursor-pointer" style={{ color: "var(--accent)" }}>
           ← 返回
         </button>
         <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>

@@ -33,7 +33,9 @@ export default function Popup() {
   const loadUsage = useCallback(async () => {
     const provider = config.providers.find((p) => p.id === config.activeProviderId);
     if (!provider?.auth_token) {
-      setShowSettings(true);
+      setData(null);
+      setError("请先在设置中配置 Provider Token。");
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -199,7 +201,10 @@ export default function Popup() {
             <span style={{ color: "var(--danger)", fontSize: 18 }}>!</span>
           </div>
           <p className="text-xs text-center max-w-[200px]" style={{ color: "var(--danger)" }}>{error}</p>
-          <button onClick={loadUsage} className="btn-primary text-xs">重试</button>
+          <div className="flex gap-2">
+            <button onClick={() => setShowSettings(true)} className="btn-primary text-xs">打开设置</button>
+            <button onClick={loadUsage} className="btn-secondary text-xs">重试</button>
+          </div>
         </div>
       )}
 
