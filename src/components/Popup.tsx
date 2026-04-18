@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { sendNotification } from "@tauri-apps/plugin-notification";
 import ProgressBar from "./ProgressBar";
 import TokenStats from "./TokenStats";
 import TokenUsageChart from "./TokenUsageChart";
@@ -6,9 +7,6 @@ import SettingsPage from "./Settings/SettingsPage";
 import { useTheme } from "../hooks/useTheme";
 import { useConfig } from "../hooks/useConfig";
 import { useI18n } from "../hooks/useI18n";
-
-const invoke = (cmd: string, args?: Record<string, unknown>) =>
-  (window as any).__TAURI__.core.invoke(cmd, args);
 
 interface UsageData {
   week_series: { label: string; value: number }[];
@@ -134,9 +132,9 @@ export default function Popup() {
         const level: "none" | "warn" | "critical" = pct >= crit ? "critical" : pct >= warn ? "warn" : "none";
         if (level !== lastAlertLevel.current) {
           if (level === "critical") {
-            invoke("notify", { title: "Quota Lens", body: t("popup.tokenCritical", { pct: pct.toFixed(0) }) });
+            sendNotification({ title: "Quota Lens", body: t("popup.tokenCritical", { pct: pct.toFixed(0) }) });
           } else if (level === "warn") {
-            invoke("notify", { title: "Quota Lens", body: t("popup.tokenWarning", { pct: pct.toFixed(0) }) });
+            sendNotification({ title: "Quota Lens", body: t("popup.tokenWarning", { pct: pct.toFixed(0) }) });
           }
           lastAlertLevel.current = level;
         }

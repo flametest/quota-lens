@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { sendNotification, requestPermission } from "@tauri-apps/plugin-notification";
 import Popup from "./components/Popup";
 import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import { I18nProvider, useI18n } from "./hooks/useI18n";
@@ -16,6 +17,11 @@ function AppContent() {
     const config = JSON.parse(stored);
     return config?.providers?.find((p: any) => p.id === config.activeProviderId) || null;
   };
+
+  // Request notification permission on startup
+  useEffect(() => {
+    requestPermission().catch(() => {});
+  }, []);
 
   // Sync auto-hi config to Rust backend when it changes
   useEffect(() => {
@@ -84,7 +90,10 @@ function AppContent() {
               baseUrl: provider.base_url,
               authToken: provider.auth_token,
             });
-            await invoke("notify", { title: t("app.dailySummaryTitle"), body: msg });
+            sendNotification({
+              title: t("app.dailySummaryTitle"),
+              body: msg,
+            });
           } catch {
             // silently ignore
           }
