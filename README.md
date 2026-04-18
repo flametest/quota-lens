@@ -1,34 +1,36 @@
 # Quota Lens
 
-macOS 菜单栏上的 AI Token 额度监控器。帮你随时掌握 Token 用量，避免额度超限。
+An AI Token quota monitor that lives in your macOS menu bar. Keep track of your Token usage at a glance and never run out unexpectedly.
 
-## 它能做什么
+[中文文档](./README_CN.md)
 
-- **一眼看到额度** — 点击菜单栏图标，实时查看 Token 使用百分比、剩余额度、重置时间
-- **Token 消耗统计** — 今日、近 7 天、近 30 天用了多少 Token，一目了然
-- **趋势曲线** — 近 7 天每小时消耗折线图，快速发现用量高峰
-- **额度告警** — 额度达到阈值时自动推送系统通知，不用担心突然用超
-- **每日汇总** — 每天定时推送一条用量摘要，睡前回顾今天的消耗
-- **多账号切换** — 支持添加多个 AI 服务商账号，随时切换查看
+## What It Does
 
-## 支持的服务商
+- **Quota at a Glance** — Click the menu bar icon to see real-time Token usage percentage, remaining quota, and reset time
+- **Usage Stats** — See how many Tokens you've used today, over the past 7 days, and the past 30 days
+- **Trend Chart** — A 7-day hourly usage line chart to help you spot usage spikes
+- **Quota Alerts** — Get system notifications when your quota hits the threshold, so you're never caught off guard
+- **Daily Summary** — A scheduled daily push notification to recap your usage for the day
+- **Multi-Account** — Add multiple AI provider accounts and switch between them freely
 
-- **智谱 GLM** — 完整支持（Token 用量 + 额度限制 + MCP 月度配额）
-- **Claude** — 开发中
-- **OpenAI** — 开发中
+## Supported Providers
 
-## 使用方式
+- **Zhipu GLM** — Fully supported (Token usage + quota limits + MCP monthly quota)
+- **Claude** — Coming soon
+- **OpenAI** — Coming soon
 
-1. 启动后在菜单栏出现图标
-2. 点击图标打开面板
-3. 首次使用进入设置，填入服务商的 Base URL 和 Token
-4. 面板每 5 分钟自动刷新，也可手动刷新
+## Getting Started
 
-## 下载安装
+1. Launch the app — an icon appears in your menu bar
+2. Click the icon to open the panel
+3. On first use, go to Settings and fill in your provider's Base URL and Token
+4. The panel auto-refreshes every 5 minutes, or refresh manually anytime
 
-> 当前版本 0.1.0，支持 macOS 12 及以上系统。
+## Installation
 
-从源码构建：
+> Current version: 0.1.0. Requires macOS 12 or later.
+
+Build from source:
 
 ```bash
 npm install
