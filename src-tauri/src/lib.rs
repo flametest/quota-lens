@@ -3,7 +3,7 @@ mod providers;
 use providers::{glm::GlmProvider, provider::Provider};
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder},
-    Emitter, Manager, RunEvent,
+    Emitter, Manager, Position, Rect, RunEvent, Size,
 };
 
 #[tauri::command]
@@ -127,25 +127,44 @@ fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
 }
 
-fn toggle_window(app: &tauri::AppHandle) {
+fn toggle_window(app: &tauri::AppHandle, tray_rect: Option<Rect>) {
     if let Some(window) = app.get_webview_window("main") {
         if window.is_visible().unwrap_or(false) {
             let _ = window.hide();
         } else {
-            // Position below macOS menu bar (height ~25px), centered horizontally
-            let x = if let Some(monitor) = window.primary_monitor().ok().flatten() {
-                let scale = monitor.scale_factor() as f64;
-                let size = monitor.size();
-                let screen_w = size.width as f64 / scale;
-                let win_w = window.inner_size().map(|s| s.width as f64 / scale).unwrap_or(320.0);
-                (screen_w - win_w) / 2.0
+            let window_size = window.outer_size().ok();
+
+            if let (Some(rect), Some(size)) = (tray_rect, window_size) {
+                let (tray_x, tray_y) = match rect.position {
+                    Position::Physical(position) => (position.x as f64, position.y as f64),
+                    Position::Logical(position) => (position.x, position.y),
+                };
+                let (tray_width, tray_height) = match rect.size {
+                    Size::Physical(size) => (size.width as f64, size.height as f64),
+                    Size::Logical(size) => (size.width, size.height),
+                };
+
+                let x = tray_x.round() as i32;
+                let y = (tray_y + tray_height + 6.0).round() as i32;
+                let _ = window.set_position(Position::Physical(
+                    tauri::PhysicalPosition::new(x, y),
+                ));
             } else {
-                0.0
-            };
-            let y = 25.0; // macOS menu bar height
-            let _ = window.set_position(tauri::Position::Logical(
-                tauri::LogicalPosition::new(x, y),
-            ));
+                let x = if let Some(monitor) = window.primary_monitor().ok().flatten() {
+                    let scale = monitor.scale_factor() as f64;
+                    let size = monitor.size();
+                    let screen_w = size.width as f64 / scale;
+                    let win_w = window.inner_size().map(|s| s.width as f64 / scale).unwrap_or(320.0);
+                    (screen_w - win_w) / 2.0
+                } else {
+                    0.0
+                };
+                let y = 25.0;
+                let _ = window.set_position(tauri::Position::Logical(
+                    tauri::LogicalPosition::new(x, y),
+                ));
+            }
+
             let _ = window.show();
             let _ = window.set_focus();
         }
@@ -198,9 +217,10 @@ pub fn run() {
                     if let tauri::tray::TrayIconEvent::Click {
                         button: MouseButton::Left,
                         button_state: MouseButtonState::Up,
+                        rect,
                         ..
                     } = event {
-                        toggle_window(tray.app_handle());
+                        toggle_window(tray.app_handle(), Some(rect));
                     }
                 })
                 .build(app)?;
