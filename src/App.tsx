@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import Popup from "./components/Popup";
-import { useTheme } from "./hooks/useTheme";
+import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import { I18nProvider, useI18n } from "./hooks/useI18n";
 
 function AppContent() {
@@ -108,7 +108,9 @@ function AppContent() {
 function App() {
   return (
     <I18nProvider>
-      <AppContent />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </I18nProvider>
   );
 }
