@@ -1,0 +1,112 @@
+import { useState, useEffect, useCallback } from "react";
+
+export interface ProviderConfig {
+  id: string;
+  name: string;
+  type: "glm" | "claude" | "openai" | "grok";
+  base_url: string;
+  auth_token: string;
+  enabled: boolean;
+}
+
+export interface NotificationConfig {
+  warnThreshold: number;
+  criticalThreshold: number;
+  dailySummary: boolean;
+  dailySummaryTime: string;
+}
+
+export interface AppConfig {
+  providers: ProviderConfig[];
+  activeProviderId: string;
+  notifications: NotificationConfig;
+}
+
+const STORAGE_KEY = "quota-lens-config";
+
+const defaultConfig: AppConfig = {
+  providers: [
+    {
+      id: "glm-default",
+      name: "智谱 GLM",
+      type: "glm",
+      base_url: "https://open.bigmodel.cn",
+      auth_token: "",
+      enabled: true,
+    },
+  ],
+  activeProviderId: "glm-default",
+  notifications: {
+    warnThreshold: 80,
+    criticalThreshold: 100,
+    dailySummary: true,
+    dailySummaryTime: "22:00",
+  },
+};
+
+export function useConfig() {
+  const [config, setConfig] = useState<AppConfig>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        return { ...defaultConfig, ...JSON.parse(stored) };
+      } catch {
+        return defaultConfig;
+      }
+    }
+    return defaultConfig;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  }, [config]);
+
+  const updateProvider = useCallback((id: string, updates: Partial<ProviderConfig>) => {
+    setConfig((prev) => ({
+      ...prev,
+      providers: prev.providers.map((p) =>
+        p.id === id ? { ...p, ...updates } : p
+      ),
+    }));
+  }, []);
+
+  const updateNotifications = useCallback((updates: Partial<NotificationConfig>) => {
+    setConfig((prev) => ({
+      ...prev,
+      notifications: { ...prev.notifications, ...updates },
+    }));
+  }, []);
+
+  const addProvider = useCallback((provider: ProviderConfig) => {
+    setConfig((prev) => ({
+      ...prev,
+      providers: [...prev.providers, provider],
+    }));
+  }, []);
+
+  const removeProvider = useCallback((id: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      providers: prev.providers.filter((p) => p.id !== id),
+      activeProviderId:
+        prev.activeProviderId === id
+          ? prev.providers[0]?.id || ""
+          : prev.activeProviderId,
+    }));
+  }, []);
+
+  const activeProvider = config.providers.find(
+    (p) => p.id === config.activeProviderId
+  );
+
+  return {
+    config,
+    activeProvider,
+    updateProvider,
+    updateNotifications,
+    addProvider,
+    removeProvider,
+    setActiveProvider: (id: string) =>
+      setConfig((prev) => ({ ...prev, activeProviderId: id })),
+  };
+}
