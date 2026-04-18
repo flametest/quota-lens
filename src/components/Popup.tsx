@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import ProgressBar from "./ProgressBar";
 import TokenStats from "./TokenStats";
 import TokenUsageChart from "./TokenUsageChart";
@@ -45,6 +45,7 @@ function extractSeries(raw: any): { label: string; value: number }[] {
 
 export default function Popup() {
   const [data, setData] = useState<UsageData | null>(null);
+  const lastAlertLevel = useRef<"none" | "warn" | "critical">("none");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -125,15 +126,19 @@ export default function Popup() {
       // Debug: log quota to verify reset times
       console.log("[Quota Lens] quota:", JSON.stringify(result.quota, null, 2));
 
-      // Check thresholds
+      // Check thresholds — only notify on level change
       if (result.quota) {
         const pct = result.quota.five_hour_percentage;
         const crit = config.notifications.criticalThreshold;
         const warn = config.notifications.warnThreshold;
-        if (pct >= crit) {
-          invoke("notify", { title: "Quota Lens", body: t("popup.tokenCritical", { pct: pct.toFixed(0) }) });
-        } else if (pct >= warn) {
-          invoke("notify", { title: "Quota Lens", body: t("popup.tokenWarning", { pct: pct.toFixed(0) }) });
+        const level: "none" | "warn" | "critical" = pct >= crit ? "critical" : pct >= warn ? "warn" : "none";
+        if (level !== lastAlertLevel.current) {
+          if (level === "critical") {
+            invoke("notify", { title: "Quota Lens", body: t("popup.tokenCritical", { pct: pct.toFixed(0) }) });
+          } else if (level === "warn") {
+            invoke("notify", { title: "Quota Lens", body: t("popup.tokenWarning", { pct: pct.toFixed(0) }) });
+          }
+          lastAlertLevel.current = level;
         }
       }
     } catch (e: any) {
