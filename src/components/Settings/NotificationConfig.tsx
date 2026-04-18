@@ -1,4 +1,5 @@
 import { NotificationConfig } from "../../hooks/useConfig";
+import { useI18n } from "../../hooks/useI18n";
 
 interface Props {
   config: NotificationConfig;
@@ -6,16 +7,18 @@ interface Props {
 }
 
 export default function NotificationConfigPanel({ config, updateNotifications }: Props) {
+  const { t } = useI18n();
+
   return (
     <div className="flex flex-col gap-4">
       <h3 className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
-        通知设置
+        {t("notification.title")}
       </h3>
 
       {/* Warning threshold */}
       <div className="card">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs" style={{ color: "var(--text-primary)" }}>预警阈值</span>
+          <span className="text-xs" style={{ color: "var(--text-primary)" }}>{t("notification.warnThreshold")}</span>
           <span className="text-xs font-bold" style={{ color: "var(--warning)" }}>
             {config.warnThreshold}%
           </span>
@@ -29,14 +32,14 @@ export default function NotificationConfigPanel({ config, updateNotifications }:
           className="w-full accent-orange-500"
         />
         <p className="text-[10px] mt-1" style={{ color: "var(--text-secondary)" }}>
-          用量达到此比例时弹出预警通知
+          {t("notification.warnDesc")}
         </p>
       </div>
 
       {/* Critical threshold */}
       <div className="card">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs" style={{ color: "var(--text-primary)" }}>紧急阈值</span>
+          <span className="text-xs" style={{ color: "var(--text-primary)" }}>{t("notification.criticalThreshold")}</span>
           <span className="text-xs font-bold" style={{ color: "var(--danger)" }}>
             {config.criticalThreshold}%
           </span>
@@ -50,7 +53,7 @@ export default function NotificationConfigPanel({ config, updateNotifications }:
           className="w-full accent-red-500"
         />
         <p className="text-[10px] mt-1" style={{ color: "var(--text-secondary)" }}>
-          用量达到此比例时弹出紧急通知
+          {t("notification.criticalDesc")}
         </p>
       </div>
 
@@ -58,10 +61,10 @@ export default function NotificationConfigPanel({ config, updateNotifications }:
       <div className="card flex items-center justify-between">
         <div>
           <span className="text-xs font-medium block" style={{ color: "var(--text-primary)" }}>
-            每日汇总通知
+            {t("notification.dailySummary")}
           </span>
           <span className="text-[10px]" style={{ color: "var(--text-secondary)" }}>
-            每天定时推送用量汇总
+            {t("notification.dailySummaryDesc")}
           </span>
         </div>
         <button
@@ -84,7 +87,7 @@ export default function NotificationConfigPanel({ config, updateNotifications }:
       {config.dailySummary && (
         <div className="card animate-slide-up">
           <span className="text-xs block mb-2" style={{ color: "var(--text-primary)" }}>
-            汇总推送时间
+            {t("notification.summaryTime")}
           </span>
           <input
             type="time"

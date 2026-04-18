@@ -1,3 +1,5 @@
+import { useI18n } from "../hooks/useI18n";
+
 interface TokenPoint {
   label: string;
   value: number;
@@ -27,6 +29,8 @@ function formatTimeLabel(label: string): string {
 }
 
 export default function TokenUsageChart({ points }: Props) {
+  const { t } = useI18n();
+
   if (!points.length) {
     return (
       <div
@@ -34,7 +38,7 @@ export default function TokenUsageChart({ points }: Props) {
         style={{ background: "var(--bg-primary)" }}
       >
         <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
-          近 7 天暂无可用曲线数据
+          {t("chart.noData")}
         </span>
       </div>
     );
@@ -129,8 +133,8 @@ export default function TokenUsageChart({ points }: Props) {
       </div>
 
       <div className="flex items-center justify-between text-[10px]" style={{ color: "var(--text-tertiary)" }}>
-        <span>近 7 天每小时 token 消耗</span>
-        <span>峰值 {formatAxisValue(maxValue)}</span>
+        <span>{t("chart.subtitle")}</span>
+        <span>{t("chart.peak", { value: formatAxisValue(maxValue) })}</span>
       </div>
     </div>
   );

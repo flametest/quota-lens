@@ -1,24 +1,32 @@
 import { Theme } from "../../hooks/useTheme";
+import { Locale, useI18n } from "../../hooks/useI18n";
 
 interface Props {
   theme: Theme;
   setTheme: (t: Theme) => void;
 }
 
-const options: { value: Theme; label: string; desc: string }[] = [
-  { value: "system", label: "跟随系统", desc: "自动匹配 macOS 外观设置" },
-  { value: "light", label: "浅色", desc: "明亮风格" },
-  { value: "dark", label: "深色", desc: "暗黑风格" },
-];
-
 export default function ThemeConfigPanel({ theme, setTheme }: Props) {
+  const { t, locale, setLocale } = useI18n();
+
+  const themeOptions: { value: Theme; label: string; desc: string }[] = [
+    { value: "system", label: t("theme.system.label"), desc: t("theme.system.desc") },
+    { value: "light", label: t("theme.light.label"), desc: t("theme.light.desc") },
+    { value: "dark", label: t("theme.dark.label"), desc: t("theme.dark.desc") },
+  ];
+
+  const languageOptions: { value: Locale; label: string }[] = [
+    { value: "zh", label: "中文" },
+    { value: "en", label: "English" },
+  ];
+
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
-        外观
+        {t("theme.title")}
       </h3>
 
-      {options.map((opt) => (
+      {themeOptions.map((opt) => (
         <button
           key={opt.value}
           onClick={() => setTheme(opt.value)}
@@ -50,6 +58,28 @@ export default function ThemeConfigPanel({ theme, setTheme }: Props) {
           )}
         </button>
       ))}
+
+      {/* Language switcher */}
+      <div className="border-t pt-3 mt-1" style={{ borderColor: "var(--border-color)" }}>
+        <h3 className="text-xs font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+          {t("theme.language")}
+        </h3>
+        <div className="flex gap-2">
+          {languageOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setLocale(opt.value)}
+              className="flex-1 card text-center text-xs font-medium py-2 transition-all"
+              style={{
+                border: locale === opt.value ? "2px solid var(--accent)" : "2px solid transparent",
+                color: locale === opt.value ? "var(--accent)" : "var(--text-secondary)",
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

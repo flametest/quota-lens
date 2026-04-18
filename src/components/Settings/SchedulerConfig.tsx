@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AppConfig } from "../../hooks/useConfig";
+import { useI18n } from "../../hooks/useI18n";
 
 interface Props {
   config: AppConfig;
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function SchedulerConfigPanel({ config, updateNotifications }: Props) {
+  const { t } = useI18n();
   const summaryTime = config.notifications.dailySummaryTime;
   const dailyEnabled = config.notifications.dailySummary;
   const autoHiEnabled = config.notifications.autoHiEnabled;
@@ -29,7 +31,7 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
   return (
     <div className="flex flex-col gap-4">
       <h3 className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
-        定时任务
+        {t("scheduler.title")}
       </h3>
 
       {/* Auto-hi */}
@@ -37,10 +39,10 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
         <div className="flex items-center justify-between mb-2">
           <div>
             <span className="text-xs font-medium block" style={{ color: "var(--text-primary)" }}>
-              自动刷新额度
+              {t("scheduler.autoRefresh")}
             </span>
             <span className="text-[10px]" style={{ color: "var(--text-secondary)" }}>
-              定时发送消息刷新 5h Token 额度
+              {t("scheduler.autoRefreshDesc")}
             </span>
           </div>
           <button
@@ -58,7 +60,7 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
         {autoHiEnabled && (
           <div className="animate-slide-up">
             <span className="text-[10px] block mb-2" style={{ color: "var(--text-tertiary)" }}>
-              每个时间点自动发送 3 次（间隔 2 分钟）
+              {t("scheduler.autoRefreshDetail")}
             </span>
 
             {/* Hour tags */}
@@ -99,7 +101,7 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
                 className="text-[10px] px-2 py-1 rounded-md font-medium"
                 style={{ background: "var(--accent)", color: "white" }}
               >
-                添加
+                {t("scheduler.addHour")}
               </button>
             </div>
           </div>
@@ -111,10 +113,10 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
         <div className="flex items-center justify-between mb-2">
           <div>
             <span className="text-xs font-medium block" style={{ color: "var(--text-primary)" }}>
-              每日汇总
+              {t("scheduler.dailySummary")}
             </span>
             <span className="text-[10px]" style={{ color: "var(--text-secondary)" }}>
-              每天汇总当日用量并推送通知
+              {t("scheduler.dailySummaryDesc")}
             </span>
           </div>
           <span
@@ -125,27 +127,27 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
               opacity: dailyEnabled ? 0.8 : 1,
             }}
           >
-            {dailyEnabled ? "已开启" : "已关闭"}
+            {dailyEnabled ? t("scheduler.enabled") : t("scheduler.disabled")}
           </span>
         </div>
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>执行时间:</span>
+          <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{t("scheduler.execTime")}</span>
           <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>
-            每天 {summaryTime}
+            {t("scheduler.everyday", { time: summaryTime })}
           </span>
         </div>
         <p className="text-[10px] mt-2" style={{ color: "var(--text-tertiary)" }}>
-          可在"通知"页面修改时间和开关
+          {t("scheduler.notifPageHint")}
         </p>
       </div>
 
       {/* Auto-refresh interval */}
       <div className="card">
         <span className="text-xs font-medium block mb-1" style={{ color: "var(--text-primary)" }}>
-          自动刷新间隔
+          {t("scheduler.refreshInterval")}
         </span>
         <span className="text-[10px]" style={{ color: "var(--text-secondary)" }}>
-          当前：每 5 分钟自动刷新一次用量数据
+          {t("scheduler.refreshIntervalDesc")}
         </span>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AppConfig, ProviderConfig } from "../../hooks/useConfig";
+import { useI18n } from "../../hooks/useI18n";
 
 const PROVIDER_TEMPLATES: Omit<ProviderConfig, "auth_token">[] = [
   { id: "glm-intl", name: "GLM (International)", type: "glm", base_url: "https://api.z.ai", enabled: true },
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function ProviderConfigPanel({ config, updateProvider }: Props) {
+  const { t } = useI18n();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editToken, setEditToken] = useState("");
   const [editBaseUrl, setEditBaseUrl] = useState("");
@@ -36,25 +38,25 @@ export default function ProviderConfigPanel({ config, updateProvider }: Props) {
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
-        Provider 配置
+        {t("provider.title")}
       </h3>
       <p className="text-[11px]" style={{ color: "var(--text-secondary)" }}>
-        配置大模型 API 连接信息。当前激活的 Provider 用于拉取用量数据。
+        {t("provider.desc")}
       </p>
 
       {config.providers.map((provider) => (
         <div key={provider.id} className="card">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>
-              {provider.name}
+              {t(`provider.name.${provider.type}` as any) || provider.name}
             </span>
             {provider.auth_token ? (
               <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--success)", color: "white", opacity: 0.8 }}>
-                已配置
+                {t("provider.configured")}
               </span>
             ) : (
               <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--warning)", color: "white", opacity: 0.8 }}>
-                未配置
+                {t("provider.notConfigured")}
               </span>
             )}
           </div>
@@ -78,15 +80,15 @@ export default function ProviderConfigPanel({ config, updateProvider }: Props) {
                   value={editToken}
                   onChange={(e) => setEditToken(e.target.value)}
                   className="input text-xs"
-                  placeholder="输入 API Token"
+                  placeholder={t("provider.tokenPlaceholder")}
                 />
               </div>
               <div className="flex gap-2">
                 <button onClick={saveProvider} className="btn-primary text-xs flex-1" disabled={!editToken}>
-                  保存
+                  {t("provider.save")}
                 </button>
                 <button onClick={() => setEditingId(null)} className="btn-secondary text-xs">
-                  取消
+                  {t("provider.cancel")}
                 </button>
               </div>
             </div>
@@ -96,7 +98,7 @@ export default function ProviderConfigPanel({ config, updateProvider }: Props) {
                 {provider.base_url}
               </p>
               <button onClick={() => startEdit(provider)} className="btn-secondary text-xs w-full cursor-pointer">
-                {provider.auth_token ? "修改配置" : "配置 Token"}
+                {provider.auth_token ? t("provider.editConfig") : t("provider.setupToken")}
               </button>
             </div>
           )}
@@ -106,14 +108,14 @@ export default function ProviderConfigPanel({ config, updateProvider }: Props) {
       {/* Future providers */}
       <div className="border-t pt-3 mt-1" style={{ borderColor: "var(--border-color)" }}>
         <h4 className="text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
-          更多 Provider（后续支持）
+          {t("provider.moreTitle")}
         </h4>
         {PROVIDER_TEMPLATES.filter(
-          (t) => !config.providers.some((p) => p.id === t.id)
+          (pt) => !config.providers.some((p) => p.id === pt.id)
         ).map((template) => (
           <div key={template.id} className="flex items-center justify-between py-1.5 opacity-50">
             <span className="text-xs" style={{ color: "var(--text-primary)" }}>{template.name}</span>
-            <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>即将支持</span>
+            <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{t("provider.comingSoon")}</span>
           </div>
         ))}
       </div>

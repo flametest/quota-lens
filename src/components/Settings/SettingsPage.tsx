@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Theme } from "../../hooks/useTheme";
 import { AppConfig, NotificationConfig, ProviderConfig } from "../../hooks/useConfig";
+import { useI18n } from "../../hooks/useI18n";
 import ProviderConfigPanel from "./ProviderConfig";
 import NotificationConfigPanel from "./NotificationConfig";
 import ThemeConfigPanel from "./ThemeConfig";
@@ -17,15 +18,16 @@ interface Props {
   updateProvider: (id: string, updates: Partial<ProviderConfig>) => void;
 }
 
-const tabs: { id: Tab; label: string }[] = [
-  { id: "provider", label: "Provider" },
-  { id: "theme", label: "外观" },
-  { id: "notification", label: "通知" },
-  { id: "scheduler", label: "定时" },
-];
-
 export default function SettingsPage({ onClose, theme, setTheme, config, updateNotifications, updateProvider }: Props) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<Tab>("provider");
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "provider", label: t("settings.tabProvider") },
+    { id: "theme", label: t("settings.tabTheme") },
+    { id: "notification", label: t("settings.tabNotification") },
+    { id: "scheduler", label: t("settings.tabScheduler") },
+  ];
 
   return (
     <div
@@ -35,21 +37,21 @@ export default function SettingsPage({ onClose, theme, setTheme, config, updateN
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <button type="button" onClick={onClose} className="text-xs font-medium cursor-pointer" style={{ color: "var(--accent)" }}>
-          ← 返回
+          {t("settings.back")}
         </button>
         <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-          设置
+          {t("settings.title")}
         </span>
         <div className="w-10" />
       </div>
 
       {/* Tabs */}
-      <div className="flex px-4 gap-1" style={{ borderBottom: "1px solid var(--border-color)" }}>
+      <div className="flex px-2 gap-0.5" style={{ borderBottom: "1px solid var(--border-color)" }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="px-3 py-2 text-xs font-medium transition-colors relative cursor-pointer"
+            className="flex-1 py-2 text-[10px] font-medium transition-colors relative cursor-pointer text-center"
             style={{
               color: activeTab === tab.id ? "var(--accent)" : "var(--text-secondary)",
             }}

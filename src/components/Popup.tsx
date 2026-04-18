@@ -5,6 +5,7 @@ import TokenUsageChart from "./TokenUsageChart";
 import SettingsPage from "./Settings/SettingsPage";
 import { useTheme } from "../hooks/useTheme";
 import { useConfig } from "../hooks/useConfig";
+import { useI18n } from "../hooks/useI18n";
 
 interface UsageData {
   week_series: { label: string; value: number }[];
@@ -46,6 +47,7 @@ export default function Popup() {
   const [showSettings, setShowSettings] = useState(false);
   const { setTheme, theme } = useTheme();
   const { activeProvider, config, updateNotifications, updateProvider } = useConfig();
+  const { t } = useI18n();
 
   // Sync auto-hi config to Rust backend whenever it changes
   useEffect(() => {
@@ -61,7 +63,7 @@ export default function Popup() {
     const provider = config.providers.find((p) => p.id === config.activeProviderId);
     if (!provider?.auth_token) {
       setData(null);
-      setError("请先在设置中配置 Provider Token。");
+      setError(t("popup.errorNoToken"));
       setLoading(false);
       return;
     }
@@ -113,12 +115,12 @@ export default function Popup() {
         if (pct >= crit) {
           await (window as any).__TAURI__.notification?.sendNotification?.({
             title: "Quota Lens",
-            body: `Token 额度已达 ${pct.toFixed(0)}%！请节省使用。`,
+            body: t("popup.tokenCritical", { pct: pct.toFixed(0) }),
           });
         } else if (pct >= warn) {
           await (window as any).__TAURI__.notification?.sendNotification?.({
             title: "Quota Lens",
-            body: `Token 额度已达 ${pct.toFixed(0)}%，请注意用量。`,
+            body: t("popup.tokenWarning", { pct: pct.toFixed(0) }),
           });
         }
       }
@@ -168,7 +170,7 @@ export default function Popup() {
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full" style={{ background: "var(--accent)" }} />
           <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-            {activeProvider?.name || "Quota Lens"}
+            {activeProvider ? t(`provider.name.${activeProvider.type}` as any) || activeProvider.name : "Quota Lens"}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -230,8 +232,8 @@ export default function Popup() {
           </div>
           <p className="text-xs text-center max-w-[200px]" style={{ color: "var(--danger)" }}>{error}</p>
           <div className="flex gap-2">
-            <button onClick={() => setShowSettings(true)} className="btn-primary text-xs">打开设置</button>
-            <button onClick={loadUsage} className="btn-secondary text-xs">重试</button>
+            <button onClick={() => setShowSettings(true)} className="btn-primary text-xs">{t("popup.openSettings")}</button>
+            <button onClick={loadUsage} className="btn-secondary text-xs">{t("popup.retry")}</button>
           </div>
         </div>
       )}
@@ -243,7 +245,7 @@ export default function Popup() {
           <div className="card">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                每5小时使用额度
+                {t("popup.quota5h")}
               </span>
               <span className="text-xs font-bold" style={{
                 color: quotaPct >= 90 ? "var(--danger)" : quotaPct >= 70 ? "var(--warning)" : "var(--text-primary)"
@@ -254,7 +256,7 @@ export default function Popup() {
             <ProgressBar percentage={quotaPct} />
             <div className="flex items-center justify-between mt-2">
               <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
-                重置时间
+                {t("popup.resetTime")}
               </span>
               <span className="text-[10px] font-medium" style={{ color: "var(--text-secondary)" }}>
                 {getFiveHourReset()}
@@ -266,7 +268,7 @@ export default function Popup() {
           <div className="card">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                MCP 月度额度
+                {t("popup.mcpMonthly")}
               </span>
               <span className="text-xs font-bold" style={{
                 color: mcpPct >= 90 ? "var(--danger)" : mcpPct >= 70 ? "var(--warning)" : "var(--text-primary)"
@@ -278,7 +280,7 @@ export default function Popup() {
             {getMcpReset() && (
               <div className="flex items-center justify-between mt-2">
                 <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
-                  重置时间
+                  {t("popup.resetTime")}
                 </span>
                 <span className="text-[10px] font-medium" style={{ color: "var(--text-secondary)" }}>
                   {getMcpReset()}
@@ -290,7 +292,7 @@ export default function Popup() {
           {/* Token stats */}
           <div className="card">
             <span className="text-xs font-medium block mb-3" style={{ color: "var(--text-secondary)" }}>
-              Token 消耗
+              {t("popup.tokenUsage")}
             </span>
             <TokenStats
               today={formatTokens(data.today.total_tokens)}

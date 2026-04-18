@@ -1,3 +1,5 @@
+import { useI18n } from "../hooks/useI18n";
+
 export default function TokenStats({
   today,
   week,
@@ -7,10 +9,12 @@ export default function TokenStats({
   week: string;
   month: string;
 }) {
+  const { t } = useI18n();
+
   const items = [
-    { label: "今日", value: today },
-    { label: "近7天", value: week },
-    { label: "近30天", value: month },
+    { label: t("stats.today"), value: today },
+    { label: t("stats.week7"), value: week },
+    { label: t("stats.month30"), value: month },
   ];
 
   return (

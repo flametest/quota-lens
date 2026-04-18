@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import Popup from "./components/Popup";
 import { useTheme } from "./hooks/useTheme";
+import { I18nProvider, useI18n } from "./hooks/useI18n";
 
-function App() {
+function AppContent() {
   const { resolved } = useTheme();
+  const { t } = useI18n();
 
   const getActiveProvider = () => {
     const stored = localStorage.getItem("quota-lens-config");
@@ -81,7 +83,7 @@ function App() {
               authToken: provider.auth_token,
             });
             (window as any).__TAURI__?.notification?.sendNotification?.({
-              title: "Quota Lens - 每日汇总",
+              title: t("app.dailySummaryTitle"),
               body: msg,
             });
           } catch {
@@ -94,12 +96,20 @@ function App() {
     return () => {
       unlisten?.then?.((fn: () => void) => fn());
     };
-  }, []);
+  }, [t]);
 
   return (
     <div className={resolved === "dark" ? "dark" : ""}>
       <Popup />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <I18nProvider>
+      <AppContent />
+    </I18nProvider>
   );
 }
 
