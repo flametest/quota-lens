@@ -25,8 +25,8 @@ export default function NotificationConfigPanel({ config, updateNotifications }:
         </div>
         <input
           type="range"
-          min={50}
-          max={99}
+          min={0}
+          max={100}
           value={config.warnThreshold}
           onChange={(e) => updateNotifications({ warnThreshold: parseInt(e.target.value) })}
           className="w-full accent-orange-500"
