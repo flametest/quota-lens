@@ -13,8 +13,11 @@ interface UsageData {
   month: { total_tokens: number };
   quota: {
     five_hour_percentage: number;
+    five_hour_reset_at?: string;
+    mcp_percentage?: number;
     mcp_monthly_used: number;
     mcp_monthly_total: number;
+    mcp_monthly_reset_at?: string;
   };
 }
 
