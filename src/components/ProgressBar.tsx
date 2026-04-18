@@ -1,7 +1,10 @@
 export default function ProgressBar({ percentage }: { percentage: number }) {
   const clamped = Math.min(100, Math.max(0, percentage));
   const color =
-    clamped >= 90 ? "#ff3b30" : clamped >= 70 ? "#ff9500" : "var(--accent)";
+    clamped >= 100 ? "#ff3b30"
+    : clamped >= 80 ? "#ff9500"
+    : clamped >= 20 ? "#007aff"
+    : "#34c759";
 
   return (
     <div

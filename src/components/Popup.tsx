@@ -248,7 +248,7 @@ export default function Popup() {
                 {t("popup.quota5h")}
               </span>
               <span className="text-xs font-bold" style={{
-                color: quotaPct >= 90 ? "var(--danger)" : quotaPct >= 70 ? "var(--warning)" : "var(--text-primary)"
+                color: quotaPct >= 100 ? "var(--danger)" : quotaPct >= 80 ? "var(--warning)" : quotaPct >= 20 ? "#007aff" : "#34c759"
               }}>
                 {quotaPct.toFixed(0)}%
               </span>
@@ -271,7 +271,7 @@ export default function Popup() {
                 {t("popup.mcpMonthly")}
               </span>
               <span className="text-xs font-bold" style={{
-                color: mcpPct >= 90 ? "var(--danger)" : mcpPct >= 70 ? "var(--warning)" : "var(--text-primary)"
+                color: mcpPct >= 100 ? "var(--danger)" : mcpPct >= 80 ? "var(--warning)" : mcpPct >= 20 ? "#007aff" : "#34c759"
               }}>
                 {mcpPct.toFixed(0)}%
               </span>
