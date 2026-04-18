@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import ProgressBar from "./ProgressBar";
 import TokenStats from "./TokenStats";
+import TokenUsageChart from "./TokenUsageChart";
 import SettingsPage from "./Settings/SettingsPage";
 import { useTheme } from "../hooks/useTheme";
 import { useConfig } from "../hooks/useConfig";
 
 interface UsageData {
+  week_series: { label: string; value: number }[];
   today: { total_tokens: number };
   week: { total_tokens: number };
   month: { total_tokens: number };
@@ -20,6 +22,18 @@ function formatTokens(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return Math.round(n / 1_000) + "K";
   return n.toString();
+}
+
+function extractSeries(raw: any): { label: string; value: number }[] {
+  if (!raw) return [];
+  const data = raw.data ?? raw;
+  const values = Array.isArray(data.tokensUsage) ? data.tokensUsage : [];
+  const labels = Array.isArray(data.x_time) ? data.x_time : [];
+
+  return values.map((value: number, index: number) => ({
+    label: labels[index] || `${index}`,
+    value: typeof value === "number" ? value : 0,
+  }));
 }
 
 export default function Popup() {
@@ -67,6 +81,7 @@ export default function Popup() {
       };
 
       const parsed: UsageData = {
+        week_series: extractSeries(result.week_raw),
         today: { total_tokens: extractTotal(result.today_raw) },
         week: { total_tokens: extractTotal(result.week_raw) },
         month: { total_tokens: extractTotal(result.month_raw) },
@@ -134,7 +149,7 @@ export default function Popup() {
   const getMcpReset = (): string | null => data?.quota?.mcp_monthly_reset_at ?? null;
 
   return (
-    <div className="w-[320px] min-h-[480px] max-h-[520px] p-4 flex flex-col gap-4 animate-fade-in glass rounded-2xl border" style={{ borderColor: "var(--border-color)" }}>
+    <div className="w-[320px] p-4 flex flex-col gap-4 animate-fade-in glass rounded-2xl border" style={{ borderColor: "var(--border-color)" }}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -269,6 +284,9 @@ export default function Popup() {
               week={formatTokens(data.week.total_tokens)}
               month={formatTokens(data.month.total_tokens)}
             />
+            <div className="mt-3">
+              <TokenUsageChart points={data.week_series} />
+            </div>
           </div>
         </div>
       )}
