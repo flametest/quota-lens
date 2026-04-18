@@ -1,10 +1,21 @@
 mod providers;
 
 use providers::{glm::GlmProvider, provider::Provider};
+use chrono::Timelike;
+use std::sync::Mutex;
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder},
     Emitter, Manager, Position, Rect, RunEvent, Size,
 };
+
+struct AutoHiState {
+    enabled: bool,
+    hours: Vec<u32>,
+}
+
+struct AppState {
+    auto_hi: Mutex<AutoHiState>,
+}
 
 #[tauri::command]
 async fn fetch_usage(
@@ -127,6 +138,22 @@ fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
 }
 
+#[tauri::command]
+async fn send_hi_message(base_url: String, auth_token: String) -> Result<String, String> {
+    let provider = GlmProvider::new(&base_url, &auth_token);
+    provider.send_hi().await?;
+    Ok("ok".to_string())
+}
+
+#[tauri::command]
+fn update_auto_hi_config(app: tauri::AppHandle, enabled: bool, hours: Vec<u32>) {
+    if let Some(state) = app.try_state::<AppState>() {
+        let mut auto_hi = state.auto_hi.lock().unwrap();
+        auto_hi.enabled = enabled;
+        auto_hi.hours = hours;
+    }
+}
+
 fn toggle_window(app: &tauri::AppHandle, tray_rect: Option<Rect>) {
     if let Some(window) = app.get_webview_window("main") {
         if window.is_visible().unwrap_or(false) {
@@ -172,6 +199,7 @@ fn toggle_window(app: &tauri::AppHandle, tray_rect: Option<Rect>) {
 }
 
 fn start_daily_summary_scheduler(app: tauri::AppHandle) {
+    let app_clone = app.clone();
     std::thread::spawn(move || {
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_all()
@@ -181,7 +209,51 @@ fn start_daily_summary_scheduler(app: tauri::AppHandle) {
             let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
             loop {
                 interval.tick().await;
-                let _ = app.emit("check-daily-summary", ());
+                let _ = app_clone.emit("check-daily-summary", ());
+            }
+        });
+    });
+}
+
+fn start_auto_hi_scheduler(app: tauri::AppHandle) {
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("Failed to create tokio runtime");
+        rt.block_on(async move {
+            let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
+            let mut last_triggered_hour: Option<u32> = None;
+            loop {
+                interval.tick().await;
+                let now = chrono::Local::now();
+                let current_hour = now.hour();
+                let current_minute = now.minute();
+
+                let (enabled, hours) = {
+                    if let Some(state) = app.try_state::<AppState>() {
+                        let auto_hi = state.auto_hi.lock().unwrap();
+                        (auto_hi.enabled, auto_hi.hours.clone())
+                    } else {
+                        (false, vec![])
+                    }
+                };
+
+                if !enabled || !hours.contains(&(current_hour as u32)) {
+                    last_triggered_hour = None;
+                    continue;
+                }
+
+                if last_triggered_hour == Some(current_hour as u32) {
+                    continue;
+                }
+
+                if current_minute >= 2 {
+                    continue;
+                }
+
+                last_triggered_hour = Some(current_hour as u32);
+                let _ = app.emit("trigger-auto-hi", ());
             }
         });
     });
@@ -192,12 +264,20 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .manage(AppState {
+            auto_hi: Mutex::new(AutoHiState {
+                enabled: true,
+                hours: vec![7, 12, 17, 22],
+            }),
+        })
         .invoke_handler(tauri::generate_handler![
             fetch_usage,
             fetch_all_usage,
             send_daily_summary,
             debug_raw_usage,
-            quit_app
+            quit_app,
+            send_hi_message,
+            update_auto_hi_config
         ])
         .setup(|app| {
             // Hide window when focus is lost (click outside)
@@ -227,6 +307,8 @@ pub fn run() {
 
             // Start daily summary background checker
             start_daily_summary_scheduler(app.handle().clone());
+            // Start auto-hi background scheduler
+            start_auto_hi_scheduler(app.handle().clone());
 
             Ok(())
         })

@@ -14,6 +14,8 @@ export interface NotificationConfig {
   criticalThreshold: number;
   dailySummary: boolean;
   dailySummaryTime: string;
+  autoHiEnabled: boolean;
+  autoHiHours: number[];
 }
 
 export interface AppConfig {
@@ -41,6 +43,8 @@ const defaultConfig: AppConfig = {
     criticalThreshold: 100,
     dailySummary: true,
     dailySummaryTime: "22:00",
+    autoHiEnabled: true,
+    autoHiHours: [7, 12, 17, 22],
   },
 };
 
@@ -49,7 +53,15 @@ export function useConfig() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        return { ...defaultConfig, ...JSON.parse(stored) };
+        const parsed = JSON.parse(stored);
+        return {
+          ...defaultConfig,
+          ...parsed,
+          notifications: {
+            ...defaultConfig.notifications,
+            ...parsed.notifications,
+          },
+        };
       } catch {
         return defaultConfig;
       }

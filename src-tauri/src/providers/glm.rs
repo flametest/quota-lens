@@ -203,3 +203,32 @@ impl Provider for GlmProvider {
     }
 }
 
+impl GlmProvider {
+    pub async fn send_hi(&self) -> Result<(), String> {
+        let url = format!("{}/api/paas/v4/chat/completions", self.base_url);
+
+        let body = serde_json::json!({
+            "model": "glm-4-flash",
+            "messages": [{"role": "user", "content": "hi"}],
+            "max_tokens": 1,
+        });
+
+        let resp = self.client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.auth_token))
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| format!("Request failed: {}", e))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text = resp.text().await.unwrap_or_default();
+            return Err(format!("Send hi failed {}: {}", status, text));
+        }
+
+        Ok(())
+    }
+}
+

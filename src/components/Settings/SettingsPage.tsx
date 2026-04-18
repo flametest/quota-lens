@@ -77,7 +77,9 @@ export default function SettingsPage({ onClose, theme, setTheme, config, updateN
             updateNotifications={updateNotifications}
           />
         )}
-        {activeTab === "scheduler" && <SchedulerConfigPanel config={config} />}
+        {activeTab === "scheduler" && (
+          <SchedulerConfigPanel config={config} updateNotifications={updateNotifications} />
+        )}
       </div>
     </div>
   );

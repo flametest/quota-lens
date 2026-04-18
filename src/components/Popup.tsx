@@ -47,6 +47,16 @@ export default function Popup() {
   const { setTheme, theme } = useTheme();
   const { activeProvider, config, updateNotifications, updateProvider } = useConfig();
 
+  // Sync auto-hi config to Rust backend whenever it changes
+  useEffect(() => {
+    const { autoHiEnabled, autoHiHours } = config.notifications;
+    if (typeof autoHiEnabled !== "boolean" || !Array.isArray(autoHiHours)) return;
+    (window as any).__TAURI__?.core?.invoke?.("update_auto_hi_config", {
+      enabled: autoHiEnabled,
+      hours: autoHiHours,
+    });
+  }, [config.notifications.autoHiEnabled, config.notifications.autoHiHours]);
+
   const loadUsage = useCallback(async () => {
     const provider = config.providers.find((p) => p.id === config.activeProviderId);
     if (!provider?.auth_token) {
