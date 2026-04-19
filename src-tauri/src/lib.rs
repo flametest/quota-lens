@@ -347,7 +347,7 @@ fn start_auto_hi_scheduler(app: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let mut app = tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(AppState {
@@ -408,8 +408,11 @@ pub fn run() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("error while building tauri application")
-        .run(|_app_handle, event| {
+        .expect("error while building tauri application");
+
+    app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+    app.run(|_app_handle, event| {
             if let RunEvent::ExitRequested { api, code, .. } = event {
                 if code.is_some() {
                     return;
