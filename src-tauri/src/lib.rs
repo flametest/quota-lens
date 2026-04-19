@@ -213,12 +213,29 @@ fn test_notification(app: tauri::AppHandle) -> Result<String, String> {
 
 #[tauri::command]
 fn notify(app: tauri::AppHandle, title: String, body: String) -> Result<String, String> {
-    app.notification()
-        .builder()
-        .title(&title)
-        .body(&body)
-        .show()
-        .map_err(|e| format!("Notification error: {}", e))?;
+    #[cfg(target_os = "macos")]
+    {
+        let escaped_title = title.replace('\\', "\\\\").replace('"', "\\\"");
+        let escaped_body = body.replace('\\', "\\\\").replace('"', "\\\"");
+        let script = format!(
+            "display notification \"{}\" with title \"{}\"",
+            escaped_body, escaped_title
+        );
+        std::process::Command::new("osascript")
+            .arg("-e")
+            .arg(&script)
+            .output()
+            .map_err(|e| format!("osascript error: {}", e))?;
+    }
+    #[cfg(target_os = "windows")]
+    {
+        app.notification()
+            .builder()
+            .title(&title)
+            .body(&body)
+            .show()
+            .map_err(|e| format!("Notification error: {}", e))?;
+    }
     Ok("sent".to_string())
 }
 

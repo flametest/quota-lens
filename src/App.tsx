@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { sendNotification, requestPermission } from "@tauri-apps/plugin-notification";
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import Popup from "./components/Popup";
 import { ThemeProvider, useTheme } from "./hooks/useTheme";
@@ -21,7 +21,6 @@ function AppContent() {
 
   // Request notification permission on startup
   useEffect(() => {
-    requestPermission().catch(() => {});
   }, []);
 
   // Sync auto-hi config to Rust backend when it changes
@@ -110,7 +109,7 @@ function AppContent() {
               baseUrl: provider.base_url,
               authToken: provider.auth_token,
             });
-            sendNotification({
+            invoke("notify", {
               title: t("app.dailySummaryTitle"),
               body: msg,
             });

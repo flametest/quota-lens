@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { sendNotification } from "@tauri-apps/plugin-notification";
+import { invoke } from "@tauri-apps/api/core";
 import ProgressBar from "./ProgressBar";
 import TokenStats from "./TokenStats";
 import TokenUsageChart from "./TokenUsageChart";
@@ -141,9 +141,9 @@ export default function Popup() {
         const level: "none" | "warn" | "critical" = pct >= crit ? "critical" : pct >= warn ? "warn" : "none";
         if (level !== lastAlertLevel.current) {
           if (level === "critical") {
-            sendNotification({ title: "Quota Lens", body: t("popup.tokenCritical", { pct: pct.toFixed(0) }) });
+            invoke("notify", { title: "Quota Lens", body: t("popup.tokenCritical", { pct: pct.toFixed(0) }) });
           } else if (level === "warn") {
-            sendNotification({ title: "Quota Lens", body: t("popup.tokenWarning", { pct: pct.toFixed(0) }) });
+            invoke("notify", { title: "Quota Lens", body: t("popup.tokenWarning", { pct: pct.toFixed(0) }) });
           }
           lastAlertLevel.current = level;
         }
