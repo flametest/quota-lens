@@ -206,7 +206,7 @@ impl Provider for GlmProvider {
 impl GlmProvider {
     pub async fn send_hi(&self) -> Result<(), String> {
         println!("[Send-Hi] base_url: {}", self.base_url);
-        let url = format!("{}/api/anthropic/chat/completions", self.base_url);
+        let url = format!("{}/api/anthropic/v1/messages", self.base_url);
         println!("[Send-Hi] url: {}", url);
 
         let body = serde_json::json!({
@@ -228,6 +228,9 @@ impl GlmProvider {
             let status = resp.status();
             let text = resp.text().await.unwrap_or_default();
             return Err(format!("Send hi failed {}: {}", status, text));
+        } else {
+            let text = resp.text().await.unwrap_or_default();
+            println!("[Send-Hi] Response: {}", text);
         }
 
         Ok(())
