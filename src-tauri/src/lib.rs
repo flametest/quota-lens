@@ -1,7 +1,7 @@
 mod providers;
 
 use providers::{glm::GlmProvider, provider::Provider};
-use chrono::Timelike;
+use chrono::{Local, Timelike};
 use std::sync::Mutex;
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder},
@@ -26,7 +26,7 @@ async fn fetch_usage(
     period: Option<String>,
 ) -> Result<serde_json::Value, String> {
     let provider = GlmProvider::new(&base_url, &auth_token);
-    let now = chrono::Utc::now();
+    let now = Local::now();
     let start = match period.as_deref() {
         Some("7d") => now - chrono::Duration::days(7),
         Some("30d") => now - chrono::Duration::days(30),
@@ -50,9 +50,13 @@ async fn fetch_all_usage(
     auth_token: String,
 ) -> Result<serde_json::Value, String> {
     let provider = GlmProvider::new(&base_url, &auth_token);
-    let now = chrono::Utc::now();
+    let now = Local::now();
 
-    let today_start = now - chrono::Duration::hours(chrono::Timelike::hour(&now) as i64 + 1);
+    let today_start = now
+        .with_hour(0).unwrap()
+        .with_minute(0).unwrap()
+        .with_second(0).unwrap()
+        .with_nanosecond(0).unwrap();
     let week_start = now - chrono::Duration::days(7);
     let month_start = now - chrono::Duration::days(30);
 
@@ -77,7 +81,7 @@ async fn debug_raw_usage(
     auth_token: String,
 ) -> Result<serde_json::Value, String> {
     let client = reqwest::Client::new();
-    let now = chrono::Utc::now();
+    let now = Local::now();
     let start = now - chrono::Duration::hours(24);
 
     let model_url = format!(
@@ -119,8 +123,12 @@ async fn send_daily_summary(
     auth_token: String,
 ) -> Result<String, String> {
     let provider = GlmProvider::new(&base_url, &auth_token);
-    let now = chrono::Utc::now();
-    let today_start = now - chrono::Duration::hours(chrono::Timelike::hour(&now) as i64 + 1);
+    let now = Local::now();
+    let today_start = now
+        .with_hour(0).unwrap()
+        .with_minute(0).unwrap()
+        .with_second(0).unwrap()
+        .with_nanosecond(0).unwrap();
 
     let usage_raw = provider.fetch_model_usage_raw(&today_start, &now).await?;
     let quota = provider.fetch_quota_limit().await?;

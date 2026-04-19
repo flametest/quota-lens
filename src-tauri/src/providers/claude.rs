@@ -1,7 +1,7 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local};
 use reqwest::Client;
 
-use super::provider::{ModelUsage, Provider, QuotaLimit, ToolUsage};
+use super::provider::{Provider, QuotaLimit, ToolUsage};
 
 pub struct ClaudeProvider {
     client: Client,
@@ -24,11 +24,11 @@ impl Provider for ClaudeProvider {
         "Claude"
     }
 
-    async fn fetch_model_usage_raw(&self, _start: &DateTime<Utc>, _end: &DateTime<Utc>) -> Result<serde_json::Value, String> {
+    async fn fetch_model_usage_raw(&self, _start: &DateTime<Local>, _end: &DateTime<Local>) -> Result<serde_json::Value, String> {
         Ok(serde_json::json!({"data": {"total_tokens": 0}}))
     }
 
-    async fn fetch_tool_usage(&self, start: &DateTime<Utc>, end: &DateTime<Utc>) -> Result<ToolUsage, String> {
+    async fn fetch_tool_usage(&self, _start: &DateTime<Local>, _end: &DateTime<Local>) -> Result<ToolUsage, String> {
         Ok(ToolUsage {
             total_calls: 0,
             details: serde_json::Value::Null,

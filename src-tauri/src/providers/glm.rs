@@ -1,8 +1,8 @@
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Local};
 use reqwest::Client;
 use serde::Deserialize;
 
-use super::provider::{ModelUsage, Provider, QuotaLimit, ToolUsage};
+use super::provider::{Provider, QuotaLimit, ToolUsage};
 
 pub struct GlmProvider {
     client: Client,
@@ -36,7 +36,7 @@ impl GlmProvider {
         }
     }
 
-    fn format_datetime(dt: &DateTime<Utc>) -> String {
+    fn format_datetime(dt: &DateTime<Local>) -> String {
         dt.format("%Y-%m-%d %H:%M:%S").to_string()
     }
 }
@@ -46,7 +46,7 @@ impl Provider for GlmProvider {
         "GLM"
     }
 
-    async fn fetch_model_usage_raw(&self, start: &DateTime<Utc>, end: &DateTime<Utc>) -> Result<serde_json::Value, String> {
+    async fn fetch_model_usage_raw(&self, start: &DateTime<Local>, end: &DateTime<Local>) -> Result<serde_json::Value, String> {
         let url = format!(
             "{}/api/monitor/usage/model-usage?startTime={}&endTime={}",
             self.base_url,
@@ -77,7 +77,7 @@ impl Provider for GlmProvider {
         Ok(data)
     }
 
-    async fn fetch_tool_usage(&self, start: &DateTime<Utc>, end: &DateTime<Utc>) -> Result<ToolUsage, String> {
+    async fn fetch_tool_usage(&self, start: &DateTime<Local>, end: &DateTime<Local>) -> Result<ToolUsage, String> {
         let url = format!(
             "{}/api/monitor/usage/tool-usage?startTime={}&endTime={}",
             self.base_url,
@@ -307,8 +307,8 @@ mod tests {
             .create();
 
         let provider = GlmProvider::new(&server.url(), "test_token");
-        let start = chrono::Utc::now() - chrono::Duration::hours(24);
-        let end = chrono::Utc::now();
+        let start = Local::now() - chrono::Duration::hours(24);
+        let end = Local::now();
         let result = provider.fetch_model_usage_raw(&start, &end).await.unwrap();
 
         let data = result.get("data").unwrap();
@@ -369,8 +369,8 @@ mod tests {
             .create();
 
         let provider = GlmProvider::new(&server.url(), "test_token");
-        let start = chrono::Utc::now() - chrono::Duration::days(30);
-        let end = chrono::Utc::now();
+        let start = Local::now() - chrono::Duration::days(30);
+        let end = Local::now();
         let result = provider.fetch_model_usage_raw(&start, &end).await.unwrap();
 
         let data = result.get("data").unwrap();

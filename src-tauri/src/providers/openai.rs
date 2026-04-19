@@ -1,7 +1,7 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local};
 use reqwest::Client;
 
-use super::provider::{ModelUsage, Provider, QuotaLimit, ToolUsage};
+use super::provider::{Provider, QuotaLimit, ToolUsage};
 
 pub struct OpenAiProvider {
     client: Client,
@@ -24,9 +24,7 @@ impl Provider for OpenAiProvider {
         "OpenAI"
     }
 
-    async fn fetch_model_usage_raw(&self, start: &DateTime<Utc>, end: &DateTime<Utc>) -> Result<serde_json::Value, String> {
-        // OpenAI usage API: GET /v1/usage?start_date=...&end_date=...
-        // Note: This endpoint requires specific permissions and may not be available for all accounts.
+    async fn fetch_model_usage_raw(&self, start: &DateTime<Local>, end: &DateTime<Local>) -> Result<serde_json::Value, String> {
         let start_date = start.format("%Y-%m-%d");
         let end_date = end.format("%Y-%m-%d");
         let url = format!(
@@ -51,7 +49,7 @@ impl Provider for OpenAiProvider {
         Ok(data)
     }
 
-    async fn fetch_tool_usage(&self, _start: &DateTime<Utc>, _end: &DateTime<Utc>) -> Result<ToolUsage, String> {
+    async fn fetch_tool_usage(&self, _start: &DateTime<Local>, _end: &DateTime<Local>) -> Result<ToolUsage, String> {
         Ok(ToolUsage {
             total_calls: 0,
             details: serde_json::Value::Null,

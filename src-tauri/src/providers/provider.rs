@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,7 +41,7 @@ pub struct UsageData {
 
 pub trait Provider: Send + Sync {
     fn name(&self) -> &str;
-    fn fetch_model_usage_raw(&self, start: &DateTime<Utc>, end: &DateTime<Utc>) -> impl std::future::Future<Output = Result<serde_json::Value, String>> + Send;
-    fn fetch_tool_usage(&self, start: &DateTime<Utc>, end: &DateTime<Utc>) -> impl std::future::Future<Output = Result<ToolUsage, String>> + Send;
+    fn fetch_model_usage_raw(&self, start: &DateTime<Local>, end: &DateTime<Local>) -> impl std::future::Future<Output = Result<serde_json::Value, String>> + Send;
+    fn fetch_tool_usage(&self, start: &DateTime<Local>, end: &DateTime<Local>) -> impl std::future::Future<Output = Result<ToolUsage, String>> + Send;
     fn fetch_quota_limit(&self) -> impl std::future::Future<Output = Result<QuotaLimit, String>> + Send;
 }
