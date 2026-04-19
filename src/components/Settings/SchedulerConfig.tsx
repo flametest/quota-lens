@@ -14,19 +14,17 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
   const autoHiEnabled = config.notifications.autoHiEnabled;
   const autoHiTimes: string[] = config.notifications.autoHiTimes;
 
-  const [newTime, setNewTime] = useState("");
+  const [newHour, setNewHour] = useState("07");
+  const [newMinute, setNewMinute] = useState("00");
 
   const addTime = () => {
-    const match = newTime.match(/^(\d{1,2}):(\d{2})$/);
-    if (!match) return;
-    const h = parseInt(match[1]);
-    const m = parseInt(match[2]);
-    if (h < 0 || h > 23 || m < 0 || m > 59) return;
+    const h = parseInt(newHour);
+    const m = parseInt(newMinute);
+    if (isNaN(h) || h < 0 || h > 23 || isNaN(m) || m < 0 || m > 59) return;
     const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     if (autoHiTimes.includes(timeStr)) return;
     const updated = [...autoHiTimes, timeStr].sort();
     updateNotifications({ autoHiTimes: updated });
-    setNewTime("");
   };
 
   const removeTime = (t: string) => {
@@ -90,15 +88,27 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
 
             {/* Add time */}
             <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                value={newTime}
-                onChange={(e) => setNewTime(e.target.value)}
-                placeholder="HH:MM"
+              <select
+                value={newHour}
+                onChange={(e) => setNewHour(e.target.value)}
                 className="input text-xs"
-                style={{ width: 72, padding: "4px 8px" }}
-                onKeyDown={(e) => e.key === "Enter" && addTime()}
-              />
+                style={{ width: 56, padding: "4px 6px" }}
+              >
+                {Array.from({ length: 24 }, (_, i) => (
+                  <option key={i} value={String(i).padStart(2, "0")}>{String(i).padStart(2, "0")}</option>
+                ))}
+              </select>
+              <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>:</span>
+              <select
+                value={newMinute}
+                onChange={(e) => setNewMinute(e.target.value)}
+                className="input text-xs"
+                style={{ width: 56, padding: "4px 6px" }}
+              >
+                {Array.from({ length: 60 }, (_, i) => (
+                  <option key={i} value={String(i).padStart(2, "0")}>{String(i).padStart(2, "0")}</option>
+                ))}
+              </select>
               <button
                 onClick={addTime}
                 className="text-[10px] px-2 py-1 rounded-md font-medium"
