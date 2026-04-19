@@ -42,7 +42,7 @@ export const zh: Record<string, string> = {
   "theme.dark.desc": "暗黑风格",
 
   // Provider names (by type)
-  "provider.name.glm": "智谱 GLM",
+  "provider.name.glm": "GLM(智谱)",
   "provider.name.claude": "Claude",
   "provider.name.openai": "OpenAI",
   "provider.name.grok": "Grok",

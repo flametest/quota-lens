@@ -42,7 +42,7 @@ export const en: Record<string, string> = {
   "theme.dark.desc": "Dark style",
 
   // Provider names (by type)
-  "provider.name.glm": "Zhipu GLM",
+  "provider.name.glm": "GLM(Zhipu)",
   "provider.name.claude": "Claude",
   "provider.name.openai": "OpenAI",
   "provider.name.grok": "Grok",

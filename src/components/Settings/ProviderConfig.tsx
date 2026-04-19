@@ -3,7 +3,7 @@ import { AppConfig, ProviderConfig } from "../../hooks/useConfig";
 import { useI18n } from "../../hooks/useI18n";
 
 const PROVIDER_TEMPLATES: Omit<ProviderConfig, "auth_token">[] = [
-  { id: "glm-intl", name: "GLM (International)", type: "glm", base_url: "https://api.z.ai", enabled: true },
+  { id: "glm-intl", name: "GLM (Z.AI)", type: "glm", base_url: "https://api.z.ai", enabled: true },
   { id: "claude", name: "Claude", type: "claude", base_url: "https://api.anthropic.com", enabled: false },
   { id: "openai", name: "OpenAI (GPT)", type: "openai", base_url: "https://api.openai.com", enabled: false },
   { id: "grok", name: "Grok (xAI)", type: "grok", base_url: "https://api.x.ai", enabled: false },
