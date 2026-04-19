@@ -94,4 +94,9 @@ export const en: Record<string, string> = {
   "about.github": "GitHub",
   "about.author": "Author",
   "about.desc": "AI Token quota monitor for your macOS menu bar",
+  "about.checkUpdate": "Check for Updates",
+  "about.checking": "Checking...",
+  "about.upToDate": "You're up to date",
+  "about.newVersion": "New version available, click to download",
+  "about.checkError": "Check failed",
 };

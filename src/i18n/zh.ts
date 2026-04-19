@@ -94,4 +94,9 @@ export const zh: Record<string, string> = {
   "about.github": "GitHub",
   "about.author": "作者",
   "about.desc": "macOS 菜单栏 AI Token 额度监控器",
+  "about.checkUpdate": "检查更新",
+  "about.checking": "检查中...",
+  "about.upToDate": "已是最新版本",
+  "about.newVersion": "发现新版本，点击下载",
+  "about.checkError": "检查失败",
 };

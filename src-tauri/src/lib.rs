@@ -158,6 +158,43 @@ fn open_url(url: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+async fn check_update() -> Result<Option<String>, String> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .get("https://api.github.com/repos/flametest/quota-lens/releases/latest")
+        .header("User-Agent", "Quota-Lens")
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {}", e))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("GitHub API error: {}", resp.status()));
+    }
+
+    let data: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("Parse error: {}", e))?;
+
+    let tag = data.get("tag_name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim_start_matches('v');
+
+    let current = env!("CARGO_PKG_VERSION");
+
+    if tag != current && !tag.is_empty() {
+        let url = data.get("html_url")
+            .and_then(|v| v.as_str())
+            .unwrap_or("https://github.com/flametest/quota-lens/releases")
+            .to_string();
+        Ok(Some(url))
+    } else {
+        Ok(None)
+    }
+}
+
+#[tauri::command]
 fn test_notification(app: tauri::AppHandle) -> Result<String, String> {
     app.notification()
         .builder()
@@ -376,7 +413,8 @@ pub fn run() {
             update_tray_title,
             test_notification,
             notify,
-            open_url
+            open_url,
+            check_update
         ])
         .setup(|app| {
             // Hide window when focus is lost (click outside)
