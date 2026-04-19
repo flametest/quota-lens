@@ -150,8 +150,14 @@ fn quit_app(app: tauri::AppHandle) {
 
 #[tauri::command]
 fn open_url(url: String) -> Result<String, String> {
+    #[cfg(target_os = "macos")]
     std::process::Command::new("open")
         .arg(&url)
+        .output()
+        .map_err(|e| format!("Failed to open URL: {}", e))?;
+    #[cfg(target_os = "windows")]
+    std::process::Command::new("cmd")
+        .args(["/c", "start", &url])
         .output()
         .map_err(|e| format!("Failed to open URL: {}", e))?;
     Ok("ok".to_string())
@@ -206,18 +212,13 @@ fn test_notification(app: tauri::AppHandle) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn notify(title: String, body: String) -> Result<String, String> {
-    let escaped_title = title.replace('\\', "\\\\").replace('"', "\\\"");
-    let escaped_body = body.replace('\\', "\\\\").replace('"', "\\\"");
-    let script = format!(
-        "display notification \"{}\" with title \"{}\"",
-        escaped_body, escaped_title
-    );
-    std::process::Command::new("osascript")
-        .arg("-e")
-        .arg(&script)
-        .output()
-        .map_err(|e| format!("osascript error: {}", e))?;
+fn notify(app: tauri::AppHandle, title: String, body: String) -> Result<String, String> {
+    app.notification()
+        .builder()
+        .title(&title)
+        .body(&body)
+        .show()
+        .map_err(|e| format!("Notification error: {}", e))?;
     Ok("sent".to_string())
 }
 
@@ -456,6 +457,7 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
 
+    #[cfg(target_os = "macos")]
     app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
     app.run(|_app_handle, event| {
