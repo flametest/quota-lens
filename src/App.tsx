@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { sendNotification, requestPermission } from "@tauri-apps/plugin-notification";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import Popup from "./components/Popup";
 import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import { I18nProvider, useI18n } from "./hooks/useI18n";
@@ -52,30 +53,40 @@ function AppContent() {
 
   // Listen for auto-hi trigger events from Rust backend
   useEffect(() => {
-    const unlisten = (window as any).__TAURI__?.event?.listen?.(
-      "trigger-auto-hi",
-      async () => {
-        const provider = getActiveProvider();
-        if (!provider?.auth_token) return;
+    console.log("[Auto-Hi] Setting up event listener");
+    console.log("[Auto-Hi] getCurrentWindow:", typeof getCurrentWindow);
 
-        for (let i = 0; i < 3; i++) {
-          try {
-            await invoke("send_hi_message", {
-              baseUrl: provider.base_url,
-              authToken: provider.auth_token,
-            });
-          } catch {
-            // retry on next iteration
-          }
-          if (i < 2) {
-            await new Promise((r) => setTimeout(r, 2 * 60 * 1000));
-          }
+    getCurrentWindow().listen("trigger-auto-hi", async () => {
+      console.log("[Auto-Hi] Event received!");
+      const provider = getActiveProvider();
+      console.log("[Auto-Hi] Provider:", provider);
+
+      if (!provider?.auth_token) {
+        console.log("[Auto-Hi] No auth token, skipping");
+        return;
+      }
+
+      for (let i = 0; i < 3; i++) {
+        try {
+          console.log(`[Auto-Hi] Sending HI attempt ${i + 1}/3`);
+          await invoke("send_hi_message", {
+            baseUrl: provider.base_url,
+            authToken: provider.auth_token,
+          });
+          console.log(`[Auto-Hi] Attempt ${i + 1} succeeded`);
+        } catch (e) {
+          console.log(`[Auto-Hi] Attempt ${i + 1} failed:`, e);
+        }
+        if (i < 2) {
+          await new Promise((r) => setTimeout(r, 2 * 60 * 1000));
         }
       }
-    );
+    }).then((unlisten: any) => {
+      console.log("[Auto-Hi] Event listener registered:", typeof unlisten);
+    });
 
     return () => {
-      unlisten?.then?.((fn: () => void) => fn());
+      console.log("[Auto-Hi] Cleaning up event listener");
     };
   }, []);
 

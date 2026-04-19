@@ -205,7 +205,9 @@ impl Provider for GlmProvider {
 
 impl GlmProvider {
     pub async fn send_hi(&self) -> Result<(), String> {
-        let url = format!("{}/api/paas/v4/chat/completions", self.base_url);
+        println!("[Send-Hi] base_url: {}", self.base_url);
+        let url = format!("{}/api/anthropic/chat/completions", self.base_url);
+        println!("[Send-Hi] url: {}", url);
 
         let body = serde_json::json!({
             "model": "glm-5.1",
@@ -215,7 +217,7 @@ impl GlmProvider {
 
         let resp = self.client
             .post(&url)
-            .header("Authorization", format!("Bearer {}", self.auth_token))
+            .header("Authorization", &self.auth_token)
             .header("Content-Type", "application/json")
             .json(&body)
             .send()
