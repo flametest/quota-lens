@@ -12,20 +12,25 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
   const summaryTime = config.notifications.dailySummaryTime;
   const dailyEnabled = config.notifications.dailySummary;
   const autoHiEnabled = config.notifications.autoHiEnabled;
-  const autoHiHours: number[] = config.notifications.autoHiHours;
+  const autoHiTimes: string[] = config.notifications.autoHiTimes;
 
-  const [newHour, setNewHour] = useState("");
+  const [newTime, setNewTime] = useState("");
 
-  const addHour = () => {
-    const h = parseInt(newHour);
-    if (isNaN(h) || h < 0 || h > 23 || autoHiHours.includes(h)) return;
-    const updated = [...autoHiHours, h].sort((a, b) => a - b);
-    updateNotifications({ autoHiHours: updated });
-    setNewHour("");
+  const addTime = () => {
+    const match = newTime.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return;
+    const h = parseInt(match[1]);
+    const m = parseInt(match[2]);
+    if (h < 0 || h > 23 || m < 0 || m > 59) return;
+    const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    if (autoHiTimes.includes(timeStr)) return;
+    const updated = [...autoHiTimes, timeStr].sort();
+    updateNotifications({ autoHiTimes: updated });
+    setNewTime("");
   };
 
-  const removeHour = (h: number) => {
-    updateNotifications({ autoHiHours: autoHiHours.filter((x) => x !== h) });
+  const removeTime = (t: string) => {
+    updateNotifications({ autoHiTimes: autoHiTimes.filter((x) => x !== t) });
   };
 
   return (
@@ -63,17 +68,17 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
               {t("scheduler.autoRefreshDetail")}
             </span>
 
-            {/* Hour tags */}
+            {/* Time tags */}
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {autoHiHours.map((h) => (
+              {autoHiTimes.map((t) => (
                 <span
-                  key={h}
+                  key={t}
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium"
                   style={{ background: "var(--accent)", color: "white", opacity: 0.85 }}
                 >
-                  {h}:00
+                  {t}
                   <button
-                    onClick={() => removeHour(h)}
+                    onClick={() => removeTime(t)}
                     className="hover:opacity-70 leading-none"
                     style={{ fontSize: 10 }}
                   >
@@ -83,21 +88,19 @@ export default function SchedulerConfigPanel({ config, updateNotifications }: Pr
               ))}
             </div>
 
-            {/* Add hour */}
+            {/* Add time */}
             <div className="flex items-center gap-1.5">
               <input
-                type="number"
-                min={0}
-                max={23}
-                value={newHour}
-                onChange={(e) => setNewHour(e.target.value)}
-                placeholder="0-23"
+                type="text"
+                value={newTime}
+                onChange={(e) => setNewTime(e.target.value)}
+                placeholder="HH:MM"
                 className="input text-xs"
-                style={{ width: 64, padding: "4px 8px" }}
-                onKeyDown={(e) => e.key === "Enter" && addHour()}
+                style={{ width: 72, padding: "4px 8px" }}
+                onKeyDown={(e) => e.key === "Enter" && addTime()}
               />
               <button
-                onClick={addHour}
+                onClick={addTime}
                 className="text-[10px] px-2 py-1 rounded-md font-medium"
                 style={{ background: "var(--accent)", color: "white" }}
               >

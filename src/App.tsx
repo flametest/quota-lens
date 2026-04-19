@@ -30,11 +30,11 @@ function AppContent() {
       if (!stored) return;
       try {
         const config = JSON.parse(stored);
-        const { autoHiEnabled, autoHiHours } = config.notifications || {};
-        if (typeof autoHiEnabled === "boolean" && Array.isArray(autoHiHours)) {
+        const { autoHiEnabled, autoHiTimes } = config.notifications || {};
+        if (typeof autoHiEnabled === "boolean" && Array.isArray(autoHiTimes)) {
           invoke("update_auto_hi_config", {
             enabled: autoHiEnabled,
-            hours: autoHiHours,
+            times: autoHiTimes,
           });
         }
       } catch {

@@ -54,13 +54,13 @@ export default function Popup() {
 
   // Sync auto-hi config to Rust backend whenever it changes
   useEffect(() => {
-    const { autoHiEnabled, autoHiHours } = config.notifications;
-    if (typeof autoHiEnabled !== "boolean" || !Array.isArray(autoHiHours)) return;
+    const { autoHiEnabled, autoHiTimes } = config.notifications;
+    if (typeof autoHiEnabled !== "boolean" || !Array.isArray(autoHiTimes)) return;
     (window as any).__TAURI__?.core?.invoke?.("update_auto_hi_config", {
       enabled: autoHiEnabled,
-      hours: autoHiHours,
+      times: autoHiTimes,
     });
-  }, [config.notifications.autoHiEnabled, config.notifications.autoHiHours]);
+  }, [config.notifications.autoHiEnabled, config.notifications.autoHiTimes]);
 
   // Update tray title when setting changes
   useEffect(() => {

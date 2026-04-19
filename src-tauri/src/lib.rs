@@ -11,8 +11,8 @@ use tauri_plugin_notification::NotificationExt;
 
 struct AutoHiState {
     enabled: bool,
-    hours: Vec<u32>,
-    last_triggered_hour: Option<u32>,
+    times: Vec<String>,
+    last_triggered: Option<String>,
 }
 
 struct AppState {
@@ -186,19 +186,19 @@ async fn send_hi_message(base_url: String, auth_token: String) -> Result<String,
 }
 
 #[tauri::command]
-fn update_auto_hi_config(app: tauri::AppHandle, enabled: bool, hours: Vec<u32>) {
+fn update_auto_hi_config(app: tauri::AppHandle, enabled: bool, times: Vec<String>) {
     if let Some(state) = app.try_state::<AppState>() {
         let mut auto_hi = state.auto_hi.lock().unwrap();
         auto_hi.enabled = enabled;
-        auto_hi.hours = hours;
+        auto_hi.times = times;
     }
 }
 
 #[tauri::command]
-fn get_auto_hi_config(app: tauri::AppHandle) -> (bool, Vec<u32>) {
+fn get_auto_hi_config(app: tauri::AppHandle) -> (bool, Vec<String>) {
     if let Some(state) = app.try_state::<AppState>() {
         let auto_hi = state.auto_hi.lock().unwrap();
-        (auto_hi.enabled, auto_hi.hours.clone())
+        (auto_hi.enabled, auto_hi.times.clone())
     } else {
         (false, vec![])
     }
@@ -267,14 +267,12 @@ fn start_daily_summary_scheduler(app: tauri::AppHandle) {
 
 fn check_and_trigger_auto_hi(app: tauri::AppHandle) {
     let now = chrono::Local::now();
-    let current_hour = now.hour();
-    let current_minute = now.minute();
     let current_time = now.format("%H:%M").to_string();
 
-    let (enabled, hours) = {
+    let (enabled, times) = {
         if let Some(ref state) = app.try_state::<AppState>() {
             let auto_hi = state.auto_hi.lock().unwrap();
-            (auto_hi.enabled, auto_hi.hours.clone())
+            (auto_hi.enabled, auto_hi.times.clone())
         } else {
             (false, vec![])
         }
@@ -285,30 +283,23 @@ fn check_and_trigger_auto_hi(app: tauri::AppHandle) {
         return;
     }
 
-    let hour = current_hour as u32;
-    if !hours.contains(&hour) {
-        println!("[Auto-Hi] Hour {} not in configured hours ({:?}), skipping check at {}", current_hour, hours, current_time);
+    if !times.contains(&current_time) {
+        println!("[Auto-Hi] {} not in configured times ({:?}), skipping", current_time, times);
         return;
     }
 
-    // Check if we already triggered this hour
+    // Check if we already triggered this time slot
     let last_triggered = {
         if let Some(ref state) = app.try_state::<AppState>() {
             let auto_hi = state.auto_hi.lock().unwrap();
-            auto_hi.last_triggered_hour
+            auto_hi.last_triggered.clone()
         } else {
             None
         }
     };
 
-    if last_triggered == Some(hour) {
-        println!("[Auto-Hi] Already triggered at hour {}, skipping at {}", hour, current_time);
-        return;
-    }
-
-    // Allow triggering only during the first 2 minutes of each hour
-    if current_minute >= 2 {
-        println!("[Auto-Hi] After 2-minute window (minute {}), skipping at {}", current_minute, current_time);
+    if last_triggered == Some(current_time.clone()) {
+        println!("[Auto-Hi] Already triggered at {}, skipping", current_time);
         return;
     }
 
@@ -317,7 +308,7 @@ fn check_and_trigger_auto_hi(app: tauri::AppHandle) {
     // Mark as triggered and emit event
     if let Some(ref state) = app.try_state::<AppState>() {
         let mut auto_hi = state.auto_hi.lock().unwrap();
-        auto_hi.last_triggered_hour = Some(hour);
+        auto_hi.last_triggered = Some(current_time.clone());
     }
 
     let _ = app.emit("trigger-auto-hi", ());
@@ -352,8 +343,8 @@ pub fn run() {
         .manage(AppState {
             auto_hi: Mutex::new(AutoHiState {
                 enabled: true,
-                hours: vec![7, 12, 17, 22],
-                last_triggered_hour: None,
+                times: vec!["07:00".to_string(), "12:00".to_string(), "17:00".to_string(), "22:00".to_string()],
+                last_triggered: None,
             }),
         })
         .invoke_handler(tauri::generate_handler![

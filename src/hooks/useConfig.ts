@@ -15,7 +15,7 @@ export interface NotificationConfig {
   dailySummary: boolean;
   dailySummaryTime: string;
   autoHiEnabled: boolean;
-  autoHiHours: number[];
+  autoHiTimes: string[];
   refreshInterval: number;
   showTrayPercent: boolean;
 }
@@ -46,7 +46,7 @@ const defaultConfig: AppConfig = {
     dailySummary: true,
     dailySummaryTime: "22:00",
     autoHiEnabled: true,
-    autoHiHours: [7, 12, 17, 22],
+    autoHiTimes: ["07:00", "12:00", "17:00", "22:00"],
     refreshInterval: 5,
     showTrayPercent: true,
   },
@@ -58,6 +58,13 @@ export function useConfig() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
+        // Migrate autoHiHours (number[]) → autoHiTimes (string[])
+        if (parsed.notifications?.autoHiHours && !parsed.notifications.autoHiTimes) {
+          parsed.notifications.autoHiTimes = parsed.notifications.autoHiHours.map(
+            (h: number) => `${String(h).padStart(2, "0")}:00`
+          );
+          delete parsed.notifications.autoHiHours;
+        }
         return {
           ...defaultConfig,
           ...parsed,
