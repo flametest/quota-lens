@@ -34,6 +34,10 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "iOS": {},
+    "macOS": {
+      "infoPlist": "Info.plist"
+    },
     "icon": [
       "icons/icon.png",
       "icons/128x128.png",
