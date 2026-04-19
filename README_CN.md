@@ -26,9 +26,11 @@ macOS 菜单栏上的 AI Token 额度监控器。帮你随时掌握 Token 用量
 
 ## 下载安装
 
-> 当前版本 0.1.0，支持 macOS 12 及以上系统。
+> 当前版本 0.3.0，支持 macOS 12 及以上系统。
 
-从源码构建：
+**下载**：[最新版本](https://github.com/flametest/quota-lens/releases)
+
+或从源码构建：
 
 ```bash
 npm install
