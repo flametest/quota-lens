@@ -25,21 +25,30 @@ function AppContent() {
 
   // Sync auto-hi config to Rust backend when it changes
   useEffect(() => {
-    const stored = localStorage.getItem("quota-lens-config");
-    if (!stored) return;
-    try {
-      const config = JSON.parse(stored);
-      const { autoHiEnabled, autoHiHours } = config.notifications || {};
-      if (typeof autoHiEnabled === "boolean" && Array.isArray(autoHiHours)) {
-        invoke("update_auto_hi_config", {
-          enabled: autoHiEnabled,
-          hours: autoHiHours,
-        });
+    const syncConfig = () => {
+      const stored = localStorage.getItem("quota-lens-config");
+      if (!stored) return;
+      try {
+        const config = JSON.parse(stored);
+        const { autoHiEnabled, autoHiHours } = config.notifications || {};
+        if (typeof autoHiEnabled === "boolean" && Array.isArray(autoHiHours)) {
+          invoke("update_auto_hi_config", {
+            enabled: autoHiEnabled,
+            hours: autoHiHours,
+          });
+        }
+      } catch {
+        // ignore parse errors
       }
-    } catch {
-      // ignore parse errors
-    }
-  }, []);
+    };
+
+    // Initial sync
+    syncConfig();
+
+    // Sync every minute to catch any configuration changes
+    const interval = setInterval(syncConfig, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [invoke]);
 
   // Listen for auto-hi trigger events from Rust backend
   useEffect(() => {

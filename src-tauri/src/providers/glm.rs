@@ -208,7 +208,7 @@ impl GlmProvider {
         let url = format!("{}/api/paas/v4/chat/completions", self.base_url);
 
         let body = serde_json::json!({
-            "model": "glm-4-flash",
+            "model": "glm-5.1",
             "messages": [{"role": "user", "content": "hi"}],
             "max_tokens": 1,
         });

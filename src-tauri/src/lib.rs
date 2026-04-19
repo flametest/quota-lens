@@ -12,6 +12,7 @@ use tauri_plugin_notification::NotificationExt;
 struct AutoHiState {
     enabled: bool,
     hours: Vec<u32>,
+    last_triggered_hour: Option<u32>,
 }
 
 struct AppState {
@@ -193,6 +194,16 @@ fn update_auto_hi_config(app: tauri::AppHandle, enabled: bool, hours: Vec<u32>) 
     }
 }
 
+#[tauri::command]
+fn get_auto_hi_config(app: tauri::AppHandle) -> (bool, Vec<u32>) {
+    if let Some(state) = app.try_state::<AppState>() {
+        let auto_hi = state.auto_hi.lock().unwrap();
+        (auto_hi.enabled, auto_hi.hours.clone())
+    } else {
+        (false, vec![])
+    }
+}
+
 fn toggle_window(app: &tauri::AppHandle, tray_rect: Option<Rect>) {
     if let Some(window) = app.get_webview_window("main") {
         if window.is_visible().unwrap_or(false) {
@@ -254,6 +265,65 @@ fn start_daily_summary_scheduler(app: tauri::AppHandle) {
     });
 }
 
+fn check_and_trigger_auto_hi(app: tauri::AppHandle) {
+    let now = chrono::Local::now();
+    let current_hour = now.hour();
+    let current_minute = now.minute();
+    let current_time = now.format("%H:%M").to_string();
+
+    let (enabled, hours) = {
+        if let Some(ref state) = app.try_state::<AppState>() {
+            let auto_hi = state.auto_hi.lock().unwrap();
+            (auto_hi.enabled, auto_hi.hours.clone())
+        } else {
+            (false, vec![])
+        }
+    };
+
+    if !enabled {
+        println!("[Auto-Hi] Disabled, skipping check at {}", current_time);
+        return;
+    }
+
+    let hour = current_hour as u32;
+    if !hours.contains(&hour) {
+        println!("[Auto-Hi] Hour {} not in configured hours ({:?}), skipping check at {}", current_hour, hours, current_time);
+        return;
+    }
+
+    // Check if we already triggered this hour
+    let last_triggered = {
+        if let Some(ref state) = app.try_state::<AppState>() {
+            let auto_hi = state.auto_hi.lock().unwrap();
+            auto_hi.last_triggered_hour
+        } else {
+            None
+        }
+    };
+
+    if last_triggered == Some(hour) {
+        println!("[Auto-Hi] Already triggered at hour {}, skipping at {}", hour, current_time);
+        return;
+    }
+
+    // Allow triggering only during the first 2 minutes of each hour
+    if current_minute >= 2 {
+        println!("[Auto-Hi] After 2-minute window (minute {}), skipping at {}", current_minute, current_time);
+        return;
+    }
+
+    println!("[Auto-Hi] Triggering at {}", current_time);
+
+    // Mark as triggered and emit event
+    if let Some(ref state) = app.try_state::<AppState>() {
+        let mut auto_hi = state.auto_hi.lock().unwrap();
+        auto_hi.last_triggered_hour = Some(hour);
+    }
+
+    let _ = app.emit("trigger-auto-hi", ());
+    println!("[Auto-Hi] Event emitted successfully");
+}
+
 fn start_auto_hi_scheduler(app: tauri::AppHandle) {
     std::thread::spawn(move || {
         let rt = tokio::runtime::Builder::new_current_thread()
@@ -262,37 +332,13 @@ fn start_auto_hi_scheduler(app: tauri::AppHandle) {
             .expect("Failed to create tokio runtime");
         rt.block_on(async move {
             let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
-            let mut last_triggered_hour: Option<u32> = None;
+
+            // Check immediately on startup
+            check_and_trigger_auto_hi(app.clone());
+
             loop {
                 interval.tick().await;
-                let now = chrono::Local::now();
-                let current_hour = now.hour();
-                let current_minute = now.minute();
-
-                let (enabled, hours) = {
-                    if let Some(state) = app.try_state::<AppState>() {
-                        let auto_hi = state.auto_hi.lock().unwrap();
-                        (auto_hi.enabled, auto_hi.hours.clone())
-                    } else {
-                        (false, vec![])
-                    }
-                };
-
-                if !enabled || !hours.contains(&(current_hour as u32)) {
-                    last_triggered_hour = None;
-                    continue;
-                }
-
-                if last_triggered_hour == Some(current_hour as u32) {
-                    continue;
-                }
-
-                if current_minute >= 2 {
-                    continue;
-                }
-
-                last_triggered_hour = Some(current_hour as u32);
-                let _ = app.emit("trigger-auto-hi", ());
+                check_and_trigger_auto_hi(app.clone());
             }
         });
     });
@@ -307,6 +353,7 @@ pub fn run() {
             auto_hi: Mutex::new(AutoHiState {
                 enabled: true,
                 hours: vec![7, 12, 17, 22],
+                last_triggered_hour: None,
             }),
         })
         .invoke_handler(tauri::generate_handler![
@@ -349,8 +396,12 @@ pub fn run() {
 
             // Start daily summary background checker
             start_daily_summary_scheduler(app.handle().clone());
+
             // Start auto-hi background scheduler
-            start_auto_hi_scheduler(app.handle().clone());
+            let app_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                start_auto_hi_scheduler(app_handle);
+            });
 
             Ok(())
         })
