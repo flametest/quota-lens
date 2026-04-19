@@ -28,8 +28,8 @@ export const en: Record<string, string> = {
   "settings.title": "Settings",
   "settings.tabProvider": "Provider",
   "settings.tabTheme": "Appearance",
-  "settings.tabNotification": "Notifications",
-  "settings.tabScheduler": "Scheduler",
+  "settings.tabNotification": "Alerts",
+  "settings.tabScheduler": "Schedule",
 
   // Settings/ThemeConfig.tsx
   "theme.title": "Appearance",
@@ -87,4 +87,10 @@ export const en: Record<string, string> = {
   "scheduler.minutes": "min",
   "scheduler.trayPercent": "Show Tray Percentage",
   "scheduler.trayPercentDesc": "Display 5h quota percentage next to menu bar icon",
+
+  // Settings/AboutPanel.tsx
+  "settings.tabAbout": "About",
+  "about.version": "Version",
+  "about.author": "Author",
+  "about.desc": "AI Token quota monitor for your macOS menu bar",
 };

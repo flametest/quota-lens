@@ -141,6 +141,15 @@ fn quit_app(app: tauri::AppHandle) {
 }
 
 #[tauri::command]
+fn open_url(url: String) -> Result<String, String> {
+    std::process::Command::new("open")
+        .arg(&url)
+        .output()
+        .map_err(|e| format!("Failed to open URL: {}", e))?;
+    Ok("ok".to_string())
+}
+
+#[tauri::command]
 fn test_notification(app: tauri::AppHandle) -> Result<String, String> {
     app.notification()
         .builder()
@@ -358,7 +367,8 @@ pub fn run() {
             update_auto_hi_config,
             update_tray_title,
             test_notification,
-            notify
+            notify,
+            open_url
         ])
         .setup(|app| {
             // Hide window when focus is lost (click outside)

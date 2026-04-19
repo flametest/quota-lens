@@ -6,8 +6,9 @@ import ProviderConfigPanel from "./ProviderConfig";
 import NotificationConfigPanel from "./NotificationConfig";
 import ThemeConfigPanel from "./ThemeConfig";
 import SchedulerConfigPanel from "./SchedulerConfig";
+import AboutPanel from "./AboutPanel";
 
-type Tab = "provider" | "theme" | "notification" | "scheduler";
+type Tab = "provider" | "theme" | "notification" | "scheduler" | "about";
 
 interface Props {
   onClose: () => void;
@@ -27,6 +28,7 @@ export default function SettingsPage({ onClose, theme, setTheme, config, updateN
     { id: "theme", label: t("settings.tabTheme") },
     { id: "notification", label: t("settings.tabNotification") },
     { id: "scheduler", label: t("settings.tabScheduler") },
+    { id: "about", label: t("settings.tabAbout") },
   ];
 
   return (
@@ -82,6 +84,7 @@ export default function SettingsPage({ onClose, theme, setTheme, config, updateN
         {activeTab === "scheduler" && (
           <SchedulerConfigPanel config={config} updateNotifications={updateNotifications} />
         )}
+        {activeTab === "about" && <AboutPanel />}
       </div>
     </div>
   );

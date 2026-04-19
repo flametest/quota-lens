@@ -87,4 +87,10 @@ export const zh: Record<string, string> = {
   "scheduler.minutes": "分钟",
   "scheduler.trayPercent": "显示托盘百分比",
   "scheduler.trayPercentDesc": "在菜单栏图标旁显示 5h 额度百分比",
+
+  // Settings/AboutPanel.tsx
+  "settings.tabAbout": "关于",
+  "about.version": "版本",
+  "about.author": "作者",
+  "about.desc": "macOS 菜单栏 AI Token 额度监控器",
 };
