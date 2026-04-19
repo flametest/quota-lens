@@ -15,7 +15,7 @@ export default function AboutPanel() {
       <div className="flex flex-col gap-2 mt-2 w-full">
         <div className="flex items-center justify-between px-4">
           <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>{t("about.version")}</span>
-          <span className="text-[11px] font-medium" style={{ color: "var(--text-primary)" }}>0.4.0</span>
+          <span className="text-[11px] font-medium" style={{ color: "var(--text-primary)" }}>0.5.0</span>
         </div>
         <div className="flex items-center justify-between px-4">
           <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>{t("about.github")}</span>

@@ -28,7 +28,7 @@ An AI Token quota monitor that lives in your macOS menu bar. Keep track of your 
 
 ## Installation
 
-> Current version: 0.4.0. Requires macOS 12 or later.
+> Current version: 0.5.0. Requires macOS 12 or later.
 
 **Download**: [Latest Release](https://github.com/flametest/quota-lens/releases)
 
