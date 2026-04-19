@@ -62,6 +62,15 @@ export default function Popup() {
     });
   }, [config.notifications.autoHiEnabled, config.notifications.autoHiTimes]);
 
+  // Reset to main panel when window is shown via tray click
+  useEffect(() => {
+    const unlisten = (window as any).__TAURI__?.event?.listen?.(
+      "window-shown",
+      () => setShowSettings(false)
+    );
+    return () => { unlisten?.then?.((fn: () => void) => fn()); };
+  }, []);
+
   // Update tray title when setting changes
   useEffect(() => {
     const title = config.notifications.showTrayPercent

@@ -244,6 +244,7 @@ fn toggle_window(app: &tauri::AppHandle, tray_rect: Option<Rect>) {
 
             let _ = window.show();
             let _ = window.set_focus();
+            let _ = app.emit("window-shown", ());
         }
     }
 }
