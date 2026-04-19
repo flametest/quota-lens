@@ -37,6 +37,31 @@ npm install
 npm run tauri build
 ```
 
+## 开发
+
+前置依赖：[Node.js](https://nodejs.org/)、[Rust](https://www.rust-lang.org/tools/install)、[Tauri CLI](https://tauri.app/start/prerequisites/)
+
+```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器（支持热更新）
+npm run tauri dev
+```
+
+## 测试
+
+```bash
+# 运行所有测试
+npm run test
+
+# 仅运行 Rust 单元测试
+cd src-tauri && cargo test
+
+# 运行 GLM Provider 测试
+cd src-tauri && cargo test --lib glm
+```
+
 ## License
 
 See [LICENSE](./LICENSE).

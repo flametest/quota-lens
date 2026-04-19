@@ -39,6 +39,31 @@ npm install
 npm run tauri build
 ```
 
+## Development
+
+Prerequisites: [Node.js](https://nodejs.org/), [Rust](https://www.rust-lang.org/tools/install), [Tauri CLI](https://tauri.app/start/prerequisites/)
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server with hot reload
+npm run tauri dev
+```
+
+## Testing
+
+```bash
+# Run all tests
+npm run test
+
+# Run Rust unit tests only
+cd src-tauri && cargo test
+
+# Run GLM provider tests
+cd src-tauri && cargo test --lib glm
+```
+
 ## License
 
 See [LICENSE](./LICENSE).
