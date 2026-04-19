@@ -91,6 +91,7 @@ export const zh: Record<string, string> = {
   // Settings/AboutPanel.tsx
   "settings.tabAbout": "关于",
   "about.version": "版本",
+  "about.github": "GitHub",
   "about.author": "作者",
   "about.desc": "macOS 菜单栏 AI Token 额度监控器",
 };

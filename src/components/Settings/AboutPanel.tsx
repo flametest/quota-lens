@@ -18,18 +18,22 @@ export default function AboutPanel() {
           <span className="text-[11px] font-medium" style={{ color: "var(--text-primary)" }}>0.4.0</span>
         </div>
         <div className="flex items-center justify-between px-4">
-          <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>{t("about.author")}</span>
+          <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>{t("about.github")}</span>
           <a
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              (window as any).__TAURI__.core.invoke("open_url", { url: "https://github.com/flametest" });
+              (window as any).__TAURI__.core.invoke("open_url", { url: "https://github.com/flametest/quota-lens" });
             }}
             className="text-[11px] font-medium cursor-pointer"
             style={{ color: "var(--accent)" }}
           >
-            flametest
+            github.com/flametest/quota-lens
           </a>
+        </div>
+        <div className="flex items-center justify-between px-4">
+          <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>{t("about.author")}</span>
+          <span className="text-[11px] font-medium" style={{ color: "var(--text-primary)" }}>flametest</span>
         </div>
       </div>
     </div>

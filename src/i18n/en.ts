@@ -91,6 +91,7 @@ export const en: Record<string, string> = {
   // Settings/AboutPanel.tsx
   "settings.tabAbout": "About",
   "about.version": "Version",
+  "about.github": "GitHub",
   "about.author": "Author",
   "about.desc": "AI Token quota monitor for your macOS menu bar",
 };
