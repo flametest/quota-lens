@@ -37,6 +37,12 @@ npm install
 npm run tauri build
 ```
 
+如果 macOS 提示"Quota Lens 已损坏，无法打开"，在终端执行：
+
+```bash
+xattr -cr /Applications/Quota\ Lens.app
+```
+
 ## 开发
 
 前置依赖：[Node.js](https://nodejs.org/)、[Rust](https://www.rust-lang.org/tools/install)、[Tauri CLI](https://tauri.app/start/prerequisites/)
