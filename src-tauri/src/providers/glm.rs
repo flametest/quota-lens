@@ -141,9 +141,21 @@ impl Provider for GlmProvider {
             .or_else(|| inner.as_array().and_then(|a| a.first()))
             .unwrap_or(inner);
 
+        let fmt_reset = |ms: Option<i64>, fmt: &str| -> Option<String> {
+            ms.map(|ms| {
+                chrono::DateTime::from_timestamp(ms / 1000, 0)
+                    .unwrap_or_default()
+                    .with_timezone(&chrono::Local)
+                    .format(fmt)
+                    .to_string()
+            })
+        };
+
         let mut quota = QuotaLimit {
             five_hour_percentage: 0.0,
             five_hour_reset_at: None,
+            weekly_percentage: 0.0,
+            weekly_reset_at: None,
             mcp_percentage: 0.0,
             mcp_monthly_used: 0,
             mcp_monthly_total: 0,
@@ -154,22 +166,29 @@ impl Provider for GlmProvider {
         if let Some(items) = limits.as_array() {
             for item in items {
                 let item_type = item.get("type").and_then(|v| v.as_str()).unwrap_or("");
-                match item_type {
-                    "TOKENS_LIMIT" => {
+                let unit = item.get("unit").and_then(|v| v.as_i64()).unwrap_or(0);
+                // GLM emits two TOKENS_LIMIT rows distinguished by `unit`:
+                //   unit 3 + number 5 → 5-hour rolling window; unit 6 + number 1 → weekly.
+                match (item_type, unit) {
+                    ("TOKENS_LIMIT", 3) => {
                         quota.five_hour_percentage = item.get("percentage")
                             .and_then(|v| v.as_f64())
                             .unwrap_or(0.0);
-                        quota.five_hour_reset_at = item.get("nextResetTime")
-                            .and_then(|v| v.as_i64())
-                            .map(|ms| {
-                                let secs = ms / 1000;
-                                let dt = chrono::DateTime::from_timestamp(secs, 0)
-                                    .unwrap_or_default()
-                                    .with_timezone(&chrono::Local);
-                                dt.format("%H:%M").to_string()
-                            });
+                        quota.five_hour_reset_at = fmt_reset(
+                            item.get("nextResetTime").and_then(|v| v.as_i64()),
+                            "%H:%M",
+                        );
                     }
-                    "TIME_LIMIT" => {
+                    ("TOKENS_LIMIT", 6) => {
+                        quota.weekly_percentage = item.get("percentage")
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(0.0);
+                        quota.weekly_reset_at = fmt_reset(
+                            item.get("nextResetTime").and_then(|v| v.as_i64()),
+                            "%m-%d %H:%M",
+                        );
+                    }
+                    ("TIME_LIMIT", _) => {
                         quota.mcp_percentage = item.get("percentage")
                             .and_then(|v| v.as_f64())
                             .unwrap_or(0.0);
@@ -183,15 +202,10 @@ impl Provider for GlmProvider {
                             .and_then(|v| v.as_f64())
                             .map(|v| v as u32)
                             .unwrap_or(0);
-                        quota.mcp_monthly_reset_at = item.get("nextResetTime")
-                            .and_then(|v| v.as_i64())
-                            .map(|ms| {
-                                let secs = ms / 1000;
-                                let dt = chrono::DateTime::from_timestamp(secs, 0)
-                                    .unwrap_or_default()
-                                    .with_timezone(&chrono::Local);
-                                dt.format("%Y-%m-%d %H:%M").to_string()
-                            });
+                        quota.mcp_monthly_reset_at = fmt_reset(
+                            item.get("nextResetTime").and_then(|v| v.as_i64()),
+                            "%Y-%m-%d %H:%M",
+                        );
                         quota.mcp_usage_details = item.get("usageDetails").cloned();
                     }
                     _ => {}
@@ -382,7 +396,7 @@ mod tests {
         assert!(x_time[0].as_str().unwrap().contains("2026-03-20"));
     }
 
-    // Based on real quota API: five_hour_percentage=68, mcp 27/100
+    // Based on real quota API: 5h=41% (unit 3), weekly=18% (unit 6), mcp 1/100
     #[tokio::test]
     async fn test_fetch_quota_limit() {
         let mut server = create_mock_server().await;
@@ -390,22 +404,17 @@ mod tests {
         let mock_response = json!({
             "code": 200,
             "data": {
+                "level": "lite",
                 "limits": [
+                    { "type": "TOKENS_LIMIT", "unit": 3, "number": 5, "percentage": 41, "nextResetTime": 1782910391829i64 },
+                    { "type": "TOKENS_LIMIT", "unit": 6, "number": 1, "percentage": 18, "nextResetTime": 1783216799990i64 },
                     {
-                        "type": "TOKENS_LIMIT",
-                        "percentage": 68,
-                        "nextResetTime": 1713458160000i64
-                    },
-                    {
-                        "type": "TIME_LIMIT",
-                        "percentage": 27,
-                        "currentValue": 27,
-                        "usage": 100,
-                        "nextResetTime": 1716079740000i64,
+                        "type": "TIME_LIMIT", "unit": 5, "percentage": 1,
+                        "currentValue": 1, "usage": 100, "nextResetTime": 1785203999970i64,
                         "usageDetails": [
-                            { "modelCode": "search-prime", "usage": 17 },
-                            { "modelCode": "web-reader", "usage": 3 },
-                            { "modelCode": "zread", "usage": 7 }
+                            { "modelCode": "search-prime", "usage": 0 },
+                            { "modelCode": "web-reader", "usage": 1 },
+                            { "modelCode": "zread", "usage": 0 }
                         ]
                     }
                 ]
@@ -423,10 +432,12 @@ mod tests {
         let provider = GlmProvider::new(&server.url(), "test_token");
         let quota = provider.fetch_quota_limit().await.unwrap();
 
-        assert_eq!(quota.five_hour_percentage, 68.0);
+        assert_eq!(quota.five_hour_percentage, 41.0);
         assert!(quota.five_hour_reset_at.is_some());
-        assert_eq!(quota.mcp_percentage, 27.0);
-        assert_eq!(quota.mcp_monthly_used, 27);
+        assert_eq!(quota.weekly_percentage, 18.0);
+        assert!(quota.weekly_reset_at.is_some());
+        assert_eq!(quota.mcp_percentage, 1.0);
+        assert_eq!(quota.mcp_monthly_used, 1);
         assert_eq!(quota.mcp_monthly_total, 100);
         assert!(quota.mcp_monthly_reset_at.is_some());
 
@@ -434,7 +445,7 @@ mod tests {
         let arr = details.as_array().unwrap();
         assert_eq!(arr.len(), 3);
         assert_eq!(arr[0].get("modelCode").and_then(|v| v.as_str()), Some("search-prime"));
-        assert_eq!(arr[0].get("usage").and_then(|v| v.as_i64()), Some(17));
+        assert_eq!(arr[0].get("usage").and_then(|v| v.as_i64()), Some(0));
     }
 
     #[tokio::test]
@@ -460,7 +471,7 @@ mod tests {
                 "code": 200,
                 "data": {
                     "limits": [
-                        { "type": "TOKENS_LIMIT", "percentage": pct, "nextResetTime": 1713458160000i64 }
+                        { "type": "TOKENS_LIMIT", "unit": 3, "percentage": pct, "nextResetTime": 1713458160000i64 }
                     ]
                 },
                 "success": true
@@ -488,7 +499,7 @@ mod tests {
         });
 
         let _mock = server
-            .mock("POST", mockito::Matcher::Regex(r"/api/.*chat/completions".to_string()))
+            .mock("POST", "/api/anthropic/v1/messages")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(mock_response.to_string())

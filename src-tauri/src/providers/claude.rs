@@ -39,6 +39,8 @@ impl Provider for ClaudeProvider {
         Ok(QuotaLimit {
             five_hour_percentage: 0.0,
             five_hour_reset_at: None,
+            weekly_percentage: 0.0,
+            weekly_reset_at: None,
             mcp_monthly_used: 0,
             mcp_monthly_total: 0,
             mcp_percentage: 0.0,

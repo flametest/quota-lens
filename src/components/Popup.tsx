@@ -16,6 +16,8 @@ interface UsageData {
   quota: {
     five_hour_percentage: number;
     five_hour_reset_at?: string;
+    weekly_percentage?: number;
+    weekly_reset_at?: string;
     mcp_percentage?: number;
     mcp_monthly_used: number;
     mcp_monthly_total: number;
@@ -27,6 +29,16 @@ function formatTokens(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return Math.round(n / 1_000) + "K";
   return n.toString();
+}
+
+function pctColor(pct: number): string {
+  return pct >= 100
+    ? "var(--danger)"
+    : pct >= 80
+      ? "var(--warning)"
+      : pct >= 20
+        ? "#007aff"
+        : "#34c759";
 }
 
 function extractSeries(raw: any): { label: string; value: number }[] {
@@ -180,12 +192,14 @@ export default function Popup() {
   }
 
   const quotaPct = data?.quota?.five_hour_percentage ?? 0;
+  const weeklyPct = data?.quota?.weekly_percentage ?? 0;
   const mcpPct = data?.quota?.mcp_percentage
     || (data?.quota && data.quota.mcp_monthly_total > 0
       ? (data.quota.mcp_monthly_used / data.quota.mcp_monthly_total) * 100
       : 0);
 
   const getFiveHourReset = (): string => data?.quota?.five_hour_reset_at ?? "--:--";
+  const getWeeklyReset = (): string => data?.quota?.weekly_reset_at ?? "--:--";
   const getMcpReset = (): string | null => data?.quota?.mcp_monthly_reset_at ?? null;
 
   return (
@@ -277,9 +291,7 @@ export default function Popup() {
               <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                 {t("popup.quota5h")}
               </span>
-              <span className="text-xs font-bold" style={{
-                color: quotaPct >= 100 ? "var(--danger)" : quotaPct >= 80 ? "var(--warning)" : quotaPct >= 20 ? "#007aff" : "#34c759"
-              }}>
+              <span className="text-xs font-bold" style={{ color: pctColor(quotaPct) }}>
                 {quotaPct.toFixed(0)}%
               </span>
             </div>
@@ -294,15 +306,34 @@ export default function Popup() {
             </div>
           </div>
 
+          {/* Token quota (weekly) */}
+          <div className="card">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                {t("popup.weeklyQuota")}
+              </span>
+              <span className="text-xs font-bold" style={{ color: pctColor(weeklyPct) }}>
+                {weeklyPct.toFixed(0)}%
+              </span>
+            </div>
+            <ProgressBar percentage={weeklyPct} />
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
+                {t("popup.resetTime")}
+              </span>
+              <span className="text-[10px] font-medium" style={{ color: "var(--text-secondary)" }}>
+                {getWeeklyReset()}
+              </span>
+            </div>
+          </div>
+
           {/* MCP monthly */}
           <div className="card">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                 {t("popup.mcpMonthly")}
               </span>
-              <span className="text-xs font-bold" style={{
-                color: mcpPct >= 100 ? "var(--danger)" : mcpPct >= 80 ? "var(--warning)" : mcpPct >= 20 ? "#007aff" : "#34c759"
-              }}>
+              <span className="text-xs font-bold" style={{ color: pctColor(mcpPct) }}>
                 {mcpPct.toFixed(0)}%
               </span>
             </div>

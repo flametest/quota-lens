@@ -9,6 +9,7 @@ export const zh: Record<string, string> = {
   "popup.openSettings": "打开设置",
   "popup.retry": "重试",
   "popup.quota5h": "每5小时使用额度",
+  "popup.weeklyQuota": "每周使用额度",
   "popup.resetTime": "重置时间",
   "popup.mcpMonthly": "MCP 月度额度",
   "popup.tokenUsage": "Token 消耗",

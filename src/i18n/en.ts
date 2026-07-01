@@ -9,6 +9,7 @@ export const en: Record<string, string> = {
   "popup.openSettings": "Open Settings",
   "popup.retry": "Retry",
   "popup.quota5h": "5-Hour Usage Quota",
+  "popup.weeklyQuota": "Weekly Usage Quota",
   "popup.resetTime": "Reset Time",
   "popup.mcpMonthly": "MCP Monthly Quota",
   "popup.tokenUsage": "Token Usage",

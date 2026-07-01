@@ -18,6 +18,8 @@ pub struct ToolUsage {
 pub struct QuotaLimit {
     pub five_hour_percentage: f64,
     pub five_hour_reset_at: Option<String>,
+    pub weekly_percentage: f64,
+    pub weekly_reset_at: Option<String>,
     pub mcp_percentage: f64,
     pub mcp_monthly_used: u32,
     pub mcp_monthly_total: u32,
