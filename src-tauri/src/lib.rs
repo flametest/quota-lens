@@ -276,43 +276,115 @@ fn get_auto_hi_config(app: tauri::AppHandle) -> (bool, Vec<String>) {
     }
 }
 
+/// Gap kept between the tray icon and the panel, and the margin kept free at
+/// the screen edges. Physical pixels.
+const TRAY_GAP: f64 = 6.0;
+const SCREEN_EDGE: f64 = 8.0;
+
+/// Normalise a tray `Rect` to physical pixels.
+///
+/// macOS and Windows both report physical coordinates today, but `Rect` allows
+/// either, and treating logical values as physical would misplace the panel on
+/// scaled displays.
+fn tray_rect_to_physical(rect: Rect, scale: f64) -> (f64, f64, f64, f64) {
+    let (x, y) = match rect.position {
+        Position::Physical(p) => (p.x as f64, p.y as f64),
+        Position::Logical(p) => (p.x * scale, p.y * scale),
+    };
+    let (w, h) = match rect.size {
+        Size::Physical(s) => (s.width as f64, s.height as f64),
+        Size::Logical(s) => (s.width * scale, s.height * scale),
+    };
+    (x, y, w, h)
+}
+
+/// Physical bounds `(x, y, width, height)` of the monitor containing `point`,
+/// falling back to the primary monitor.
+fn monitor_bounds(
+    window: &tauri::WebviewWindow,
+    point: Option<(f64, f64)>,
+) -> Option<(f64, f64, f64, f64)> {
+    if let (Some((px, py)), Ok(monitors)) = (point, window.available_monitors()) {
+        for monitor in &monitors {
+            let (pos, size) = (monitor.position(), monitor.size());
+            let (mx, my) = (pos.x as f64, pos.y as f64);
+            let (mw, mh) = (size.width as f64, size.height as f64);
+            if px >= mx && px < mx + mw && py >= my && py < my + mh {
+                return Some((mx, my, mw, mh));
+            }
+        }
+    }
+
+    let monitor = window.primary_monitor().ok().flatten()?;
+    let (pos, size) = (monitor.position(), monitor.size());
+    Some((pos.x as f64, pos.y as f64, size.width as f64, size.height as f64))
+}
+
+/// Place the panel next to the tray icon.
+///
+/// The panel drops below the icon when there is room for it (macOS keeps the
+/// menu bar at the top of the screen) and flips above the icon when there is
+/// not (the Windows taskbar normally sits at the bottom). Both axes are then
+/// clamped to the monitor holding the icon, so an icon near a screen edge —
+/// the Windows notification area is in the bottom-right corner — no longer
+/// pushes the panel off screen.
+fn position_window(window: &tauri::WebviewWindow, tray_rect: Option<Rect>) {
+    let win_size = match window.outer_size() {
+        Ok(size) => size,
+        Err(_) => return,
+    };
+    let (win_w, win_h) = (win_size.width as f64, win_size.height as f64);
+    let scale = window.scale_factor().unwrap_or(1.0);
+
+    let rect = match tray_rect {
+        Some(rect) => rect,
+        // No tray geometry: park the panel where the tray lives on this
+        // platform instead of assuming a menu bar at the top.
+        None => {
+            if let Some((mx, my, mw, mh)) = monitor_bounds(window, None) {
+                let (x, y) = if cfg!(target_os = "macos") {
+                    (mx + (mw - win_w) / 2.0, my + 25.0 * scale)
+                } else {
+                    (mx + mw - win_w - SCREEN_EDGE, my + mh - win_h - SCREEN_EDGE)
+                };
+                let _ = window.set_position(Position::Physical(tauri::PhysicalPosition::new(
+                    x.round() as i32,
+                    y.round() as i32,
+                )));
+            }
+            return;
+        }
+    };
+
+    let (tray_x, tray_y, tray_w, tray_h) = tray_rect_to_physical(rect, scale);
+
+    let mut x = tray_x;
+    let mut y = tray_y + tray_h + TRAY_GAP;
+
+    let tray_center = (tray_x + tray_w / 2.0, tray_y + tray_h / 2.0);
+    if let Some((mx, my, mw, mh)) = monitor_bounds(window, Some(tray_center)) {
+        // Not enough room below the icon → flip to above it.
+        if y + win_h > my + mh - SCREEN_EDGE {
+            y = tray_y - TRAY_GAP - win_h;
+        }
+        // `max` keeps the clamp range valid when the panel is taller or wider
+        // than the monitor; clamp panics if the upper bound is below the lower.
+        y = y.clamp(my + SCREEN_EDGE, (my + mh - win_h - SCREEN_EDGE).max(my + SCREEN_EDGE));
+        x = x.clamp(mx + SCREEN_EDGE, (mx + mw - win_w - SCREEN_EDGE).max(mx + SCREEN_EDGE));
+    }
+
+    let _ = window.set_position(Position::Physical(tauri::PhysicalPosition::new(
+        x.round() as i32,
+        y.round() as i32,
+    )));
+}
+
 fn toggle_window(app: &tauri::AppHandle, tray_rect: Option<Rect>) {
     if let Some(window) = app.get_webview_window("main") {
         if window.is_visible().unwrap_or(false) {
             let _ = window.hide();
         } else {
-            let window_size = window.outer_size().ok();
-
-            if let (Some(rect), Some(size)) = (tray_rect, window_size) {
-                let (tray_x, tray_y) = match rect.position {
-                    Position::Physical(position) => (position.x as f64, position.y as f64),
-                    Position::Logical(position) => (position.x, position.y),
-                };
-                let (tray_width, tray_height) = match rect.size {
-                    Size::Physical(size) => (size.width as f64, size.height as f64),
-                    Size::Logical(size) => (size.width, size.height),
-                };
-
-                let x = tray_x.round() as i32;
-                let y = (tray_y + tray_height + 6.0).round() as i32;
-                let _ = window.set_position(Position::Physical(
-                    tauri::PhysicalPosition::new(x, y),
-                ));
-            } else {
-                let x = if let Some(monitor) = window.primary_monitor().ok().flatten() {
-                    let scale = monitor.scale_factor() as f64;
-                    let size = monitor.size();
-                    let screen_w = size.width as f64 / scale;
-                    let win_w = window.inner_size().map(|s| s.width as f64 / scale).unwrap_or(320.0);
-                    (screen_w - win_w) / 2.0
-                } else {
-                    0.0
-                };
-                let y = 25.0;
-                let _ = window.set_position(tauri::Position::Logical(
-                    tauri::LogicalPosition::new(x, y),
-                ));
-            }
+            position_window(&window, tray_rect);
 
             let _ = window.show();
             let _ = window.set_focus();
